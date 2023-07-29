@@ -1,10 +1,14 @@
+import { Input, Box, Heading } from '@chakra-ui/react'
+
 import './App.css'
+import Editor from './editor/Editor'
 
 const App = () => {
   return (
-    <>
-      <h1>Chordpad</h1>
-    </>
+    <Box w="100%" display="block">
+      <Heading>Chordpad</Heading>
+      <Editor />
+    </Box>
   )
 }
 
