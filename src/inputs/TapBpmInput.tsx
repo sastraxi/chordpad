@@ -49,7 +49,7 @@ const TapBpmInput = ({
   onChange,
   min = 30,
   max = 240,
-  tapButtonText = 'Tap (𝅘𝅥)',
+  tapButtonText = 'Tap 𝅘𝅥',
 }: PropTypes) => {
 
   const [tapMemoryMs, setTapMemoryMs] = useState<number[]>([])
