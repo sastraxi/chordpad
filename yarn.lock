@@ -2447,6 +2447,33 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chordpad@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "chordpad@workspace:."
+  dependencies:
+    "@chakra-ui/react": ^2.8.0
+    "@emotion/react": ^11.11.1
+    "@emotion/styled": ^11.11.0
+    "@types/react": ^18.0.37
+    "@types/react-dom": ^18.0.11
+    "@typescript-eslint/eslint-plugin": ^5.59.0
+    "@typescript-eslint/parser": ^5.59.0
+    "@vitejs/plugin-react-swc": ^3.0.0
+    downshift: ^8.0.0
+    eslint: ^8.38.0
+    eslint-plugin-react-hooks: ^4.6.0
+    eslint-plugin-react-refresh: ^0.3.4
+    framer-motion: ^10.15.0
+    noteynotes: "https://github.com/sastraxi/noteynotes"
+    react: ^18.2.0
+    react-dom: ^18.2.0
+    typescript: ^5.0.2
+    vite: ^4.3.9
+    vite-plugin-mkcert: ^1.15.0
+    zustand: ^4.3.8
+  languageName: unknown
+  linkType: soft
+
 "chownr@npm:^2.0.0":
   version: 2.0.0
   resolution: "chownr@npm:2.0.0"
@@ -3502,32 +3529,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jam-shuffle@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "jam-shuffle@workspace:."
-  dependencies:
-    "@chakra-ui/react": ^2.8.0
-    "@emotion/react": ^11.11.1
-    "@emotion/styled": ^11.11.0
-    "@types/react": ^18.0.37
-    "@types/react-dom": ^18.0.11
-    "@typescript-eslint/eslint-plugin": ^5.59.0
-    "@typescript-eslint/parser": ^5.59.0
-    "@vitejs/plugin-react-swc": ^3.0.0
-    downshift: ^8.0.0
-    eslint: ^8.38.0
-    eslint-plugin-react-hooks: ^4.6.0
-    eslint-plugin-react-refresh: ^0.3.4
-    framer-motion: ^10.15.0
-    react: ^18.2.0
-    react-dom: ^18.2.0
-    typescript: ^5.0.2
-    vite: ^4.3.9
-    vite-plugin-mkcert: ^1.15.0
-    zustand: ^4.3.8
-  languageName: unknown
-  linkType: soft
-
 "js-tokens@npm:^3.0.0 || ^4.0.0, js-tokens@npm:^4.0.0":
   version: 4.0.0
   resolution: "js-tokens@npm:4.0.0"
@@ -3883,6 +3884,15 @@ __metadata:
   checksum: 82149371f8be0c4b9ec2f863cc6509a7fd0fa729929c009f3a58e4eb0c9e4cae9920e8f1f8eb46e7d032fec8fb01bede7f0f41a67eb3553b7b8e14fa53de1dac
   languageName: node
   linkType: hard
+
+"noteynotes@portal:/home/cam/dev/noteynotes::locator=chordpad%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "noteynotes@portal:/home/cam/dev/noteynotes::locator=chordpad%40workspace%3A."
+  peerDependencies:
+    react: "*"
+    react-dom: "*"
+  languageName: node
+  linkType: soft
 
 "npmlog@npm:^6.0.0":
   version: 6.0.2

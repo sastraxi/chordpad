@@ -1,5 +1,5 @@
 import { Box } from '@chakra-ui/react'
-import ChordInput from './ChordInput'
+import ChordInput from '../inputs/ChordInput'
 
 const Editor = () => {
   return (

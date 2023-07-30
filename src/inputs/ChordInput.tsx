@@ -1,5 +1,5 @@
 import { useCombobox } from 'downshift'
-import { Box, Input, Button, List, ListItem, UnorderedList } from '@chakra-ui/react'
+import { Input, Button, ListItem, UnorderedList, Flex } from '@chakra-ui/react'
 import { useState } from 'react'
 
 type PropTypes = {
@@ -33,7 +33,7 @@ const ChordInput = ({
   const {
     isOpen,
     getInputProps,
-    highlightedIndex,
+    // highlightedIndex,
     getItemProps,
     getToggleButtonProps,
     getMenuProps,
@@ -51,12 +51,12 @@ const ChordInput = ({
 
   return (
     <>
-      <Box>
+      <Flex>
         <Input placeholder="Chord" {...getInputProps()} />
         <Button {...getToggleButtonProps()} />
-      </Box>
+      </Flex>
       <UnorderedList
-          {...getMenuProps()}
+        {...getMenuProps()}
       >
         {isOpen &&
           chords.map((item, index) => {
@@ -71,7 +71,7 @@ const ChordInput = ({
                 {item}
               </ListItem>
             )
-        })}
+          })}
       </UnorderedList>
     </>
   )
