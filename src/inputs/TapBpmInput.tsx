@@ -5,9 +5,11 @@ import {
 import { useState } from "react"
 
 type PropTypes = {
-  currentBpm: number
-  onBpmChanged: (newBpm: number) => void
+  value: number
+  onChange: (newBpm: number) => void
   tapButtonText?: string
+  min?: number
+  max?: number
 }
 
 /**
@@ -24,10 +26,13 @@ const TAP_MEMORY_MIN = 3
  * No matter what, cancel BPM estimation if the user ever
  * waits this long between tap.
  */
-const DEFAULT_TAP_ABORT_MS = 1000
+const DEFAULT_TAP_ABORT_MS = 2500
 
 const msecToBpm = (durationMs: number) => (1000 / durationMs) * 60
 const bpmToMsec = (bpm: number) => (1000 / (bpm / 60))
+
+const constrain = (value: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, value))
 
 const guessBpm = (tapsMs: number[]) => {
   if (tapsMs.length <= 1) throw new Error("Need at least 2 taps to guess BPM")
@@ -40,8 +45,10 @@ const guessBpm = (tapsMs: number[]) => {
 }
 
 const TapBpmInput = ({
-  currentBpm,
-  onBpmChanged,
+  value,
+  onChange,
+  min = 30,
+  max = 240,
   tapButtonText = 'Tap (𝅘𝅥)',
 }: PropTypes) => {
 
@@ -59,10 +66,9 @@ const TapBpmInput = ({
 
     let abortMs = DEFAULT_TAP_ABORT_MS
     if (taps.length >= TAP_MEMORY_MIN) {
-      const guessedBpm = guessBpm(taps)
-      onBpmChanged(guessedBpm)
+      const guessedBpm = constrain(guessBpm(taps), min, max)
+      onChange(guessedBpm)
       abortMs = 1.6 * bpmToMsec(guessedBpm)
-      console.log(guessedBpm, abortMs)
     }
 
     // after a while, reset our tap memory
@@ -79,20 +85,20 @@ const TapBpmInput = ({
       <Flex>
         <Input
           type="number"
-          value={currentBpm}
+          value={value}
           onChange={
             (event) => event.target.value &&
-              onBpmChanged(parseInt(event.target.value, 10))
+              onChange(parseInt(event.target.value, 10))
           }
         />
         <Button onClick={recordTap}>{tapButtonText}</Button>
       </Flex>
       <Box>
         <Slider
-          value={currentBpm}
-          min={30}
-          max={240}
-          onChange={onBpmChanged}
+          value={value}
+          min={min}
+          max={max}
+          onChange={onChange}
         >
           <SliderTrack>
             <SliderFilledTrack />

@@ -17,7 +17,7 @@ const App = () => {
       <Editor />
       <Divider />
       <Box>
-        <TapBpmInput currentBpm={bpm} onBpmChanged={setBpm} />
+        <TapBpmInput value={bpm} onChange={setBpm} />
         {HELLO_WORLD} {WORLD} {HelloWorldDefault}
       </Box>
     </Box>
