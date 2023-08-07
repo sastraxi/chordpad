@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { TimeSignature } from '../types'
+import { replace, update } from '../util'
 
 export type Rhythm = {
   /**
@@ -92,40 +93,26 @@ type SectionMutators = {
 type SongStateAndMutators = SongState & {
   resetSong: () => void
   setSectionItems: (index: number, items: Array<SectionItem>) => void
-  setSectionContext: (index: number, context: Partial<SongContext>) => void
+  setSectionContext: (index: number, contextOverrides: Partial<SongContext>) => void
 }
 
 export const useSongState = create<SongStateAndMutators>()(
   persist(
     (set) => ({
       ...DEFAULT_SONG,
-      resetSong: () => set(() => ({
-        ...DEFAULT_SONG,
-      })),
-      setSectionItems: (index: number, items: Array<SectionItem>) => set((state) => {
-        return {
-          sections: [
-            ...state.sections.slice(0, index),
-            {
-              ...state.sections[index],
-              items,
-            },
-            ...state.sections.slice(index + 1),
-          ]
-        }
-      }),
-      setSectionContext: (index: number, context: Partial<SongContext>) => set((state) => {
-        return {
-          sections: [
-            ...state.sections.slice(0, index),
-            {
-              ...state.sections[index],
-              contextOverrides: context,
-            },
-            ...state.sections.slice(index + 1),
-          ]
-        }
-      }),
+
+      resetSong: () => set(() => DEFAULT_SONG),
+
+      setSectionItems: (index: number, items: Array<SectionItem>) =>
+        set((state) => ({
+          sections: update(state.sections, index, { items })
+        })),
+
+      setSectionContext: (index: number, contextOverrides: Partial<SongContext>) =>
+        set((state) => ({
+          sections: update(state.sections, index, { contextOverrides })
+        })),
+
     }),
     {
       name: 'chordpad-song',
@@ -141,67 +128,38 @@ export const useResetSong = () => useSongState(state => state.resetSong)
 type UseSection = ContextMutators & SectionMutators & { section: SongSection }
 
 export const useSection = (index: number): UseSection => {
+  const defaultContext = useDefaultSongContext()
   const section = useSongState(state => state.sections[index])
   const setSectionItems = useSongState(state => state.setSectionItems)
   const setSectionContext = useSongState(state => state.setSectionContext)
   const setItems = (items: SectionItem[]) => setSectionItems(index, items)
   const setContext = (context: Partial<SongContext>) => setSectionContext(index, context)
 
+  const setOrClear = <T extends keyof SongContext>(key: T) => (value: SongContext[T] | null) => {
+    if (value === null || value === defaultContext[key]) {
+      const context = { ...section.contextOverrides }
+      delete context[key]
+      setContext(context)
+    } else {
+      setContext({
+        ...section.contextOverrides,
+        [key]: value,
+      })
+    }
+  }
+
   return {
     section,
 
-    setBpm: (bpm: number | null) => {
-      if (bpm === null) {
-        const context = { ...section.contextOverrides }
-        delete context["bpm"]
-        setContext(context)
-      } else {
-        setContext({
-          ...section.contextOverrides,
-          bpm,
-        })
-      }
-    },
+    setBpm: setOrClear('bpm'),
+    setKey: setOrClear('key'),
+    setTimeSignature: setOrClear('timeSignature'),
 
-    setKey: (key: string | null) => {
-      if (key === null) {
-        const context = { ...section.contextOverrides }
-        delete context["key"]
-        setContext(context)
-      } else {
-        setContext({
-          ...section.contextOverrides,
-          key,
-        })
-      }
-    },
-
-    setTimeSignature: (timeSignature: TimeSignature | null) => {
-      if (timeSignature === null) {
-        const context = { ...section.contextOverrides }
-        delete context["timeSignature"]
-        setContext(context)
-      } else {
-        setContext({
-          ...section.contextOverrides,
-          timeSignature,
-        })
-      }
-    },
-
-    updateItem: (index: number, replacements: Partial<SectionItem>) =>
-      setItems([
-        ...section.items.slice(0, index),
-        { ...section.items[index], ...replacements },
-        ...section.items.slice(index + 1),
-      ]),
+    updateItem: (index: number, updates: Partial<SectionItem>) =>
+      setItems(update(section.items, index, updates)),
 
     replaceItem: (index: number, item: SectionItem) =>
-      setItems([
-        ...section.items.slice(0, index),
-        item,
-        ...section.items.slice(index + 1),
-      ]),
+      setItems(replace(section.items, index, item)),
 
     insertItems: (index: number, items: SectionItem[]) =>
       setItems([
