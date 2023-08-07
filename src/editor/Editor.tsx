@@ -1,6 +1,7 @@
 import { Box, Flex, InputProps } from '@chakra-ui/react'
 import ChordInput from '../inputs/ChordInput'
 import { useCallback, useRef, useState } from 'react'
+import TimelineChord from './TimelineChord'
 
 const Editor = () => {
   const [chords, setChords] = useState<Array<string | null>>(["C", "Cmaj7", "Fm", null])
@@ -76,17 +77,25 @@ const Editor = () => {
   }
 
   return (
-    <Box w={80}>
+    <Box>
       <Flex ref={chordsContainer}>
         {
           chords.map((chord, index) => {
             return (
-              <ChordInput
+              <TimelineChord
                 key={index}
-                value={chord}
-                onChange={updateChord(index)}
-                additionalInputProps={inputProps}
-              />
+                durationBeats={4}
+                positionBeats={index * 4}
+                timeSignature={{ noteValue: 4, perMeasure: 4 }}
+              >
+                <span>iii</span>
+                <ChordInput
+                  key={index}
+                  value={chord}
+                  onChange={updateChord(index)}
+                  additionalInputProps={inputProps}
+                />
+              </TimelineChord>
             )
           })
         }
