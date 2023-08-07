@@ -7,6 +7,7 @@ const App = () => {
   return (
     <Box w="100%" display="block">
       <Editor />
+      <Editor />
     </Box>
   )
 }

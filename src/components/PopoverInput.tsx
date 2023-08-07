@@ -47,7 +47,7 @@ const PopoverInput = <T,>({
           {React.createElement(displayComponent, { value })}
         </Button>
       </PopoverTrigger>
-      <PopoverContent>
+      <PopoverContent boxShadow="lg">
         <PopoverArrow />
         {header && <PopoverCloseButton />}
         {header && <PopoverHeader>{header}</PopoverHeader>}
