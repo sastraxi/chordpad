@@ -1,27 +1,35 @@
-import { Box, Flex, InputProps } from '@chakra-ui/react'
+import { Box, Flex, HStack, Heading, InputProps } from '@chakra-ui/react'
 import ChordInput from '../inputs/ChordInput'
 import { useCallback, useRef, useState } from 'react'
 import TimelineItem from './TimelineItem'
 import { UseComboboxGetInputPropsOptions } from 'downshift'
+import TimeSignatureDisplay from '../components/TimeSignatureDisplay'
+import { TimeSignature } from '../types'
+import PopoverInput from '../components/PopoverInput'
+import TimeSignatureInput from '../inputs/TimeSignatureInput'
+import TapBpmInput from '../inputs/TapBpmInput'
+import KeyInput from '../inputs/KeyInput'
 
 const Editor = () => {
+  const [bpm, setBpm] = useState<number>(120)
+  const [key, setKey] = useState<string>("C major")
+  const [timeSignature, setTimeSignature] = useState<TimeSignature>({ noteValue: 4, perMeasure: 4 })
   const [chords, setChords] = useState<Array<string | null>>(["C", "Cmaj7", "Fm", null])
-  const updateChord = (index: number) =>
-    (newChord: string | null) => {
 
-      const newChordArray = [
-        ...chords.slice(0, index),
-        newChord,
-        ...chords.slice(index + 1),
-      ]
+  const updateChord = (index: number) => (newChord: string | null) => {
+    const newChordArray = [
+      ...chords.slice(0, index),
+      newChord,
+      ...chords.slice(index + 1),
+    ]
 
-      if (index === chords.length - 1 && newChord) {
-        // need empty chord at the end
-        newChordArray.push(null)
-      }
-
-      setChords(newChordArray)
+    if (index === chords.length - 1 && newChord) {
+      // need empty chord at the end
+      newChordArray.push(null)
     }
+
+    setChords(newChordArray)
+  }
 
   const chordsContainer = useRef<HTMLDivElement | null>(null)
 
@@ -73,6 +81,33 @@ const Editor = () => {
 
   return (
     <Box>
+      <HStack py={2}>
+        <Heading size="md">
+          Intro
+        </Heading>
+        <PopoverInput
+          value={key}
+          onChange={setKey}
+          displayComponent={({ value }) => <span>{value}</span>}
+          editorComponent={KeyInput}
+          buttonProps={{ size: "sm", w: 32 }}
+        />
+        <PopoverInput
+          value={bpm}
+          onChange={setBpm}
+          displayComponent={({ value }) => <span>𝅘𝅥 = {value}</span>}
+          editorComponent={TapBpmInput}
+          buttonProps={{ size: "sm", w: 16 }}
+        />
+        <PopoverInput
+          value={timeSignature}
+          onChange={setTimeSignature}
+          displayComponent={TimeSignatureDisplay}
+          editorComponent={TimeSignatureInput}
+          closeOnChange
+          buttonProps={{ size: "sm" }}
+        />
+      </HStack>
       <Box ref={chordsContainer} maxWidth="1200px">
         {
           chords.map((chord, index) => {
@@ -81,7 +116,7 @@ const Editor = () => {
                 key={index}
                 durationBeats={4}
                 positionBeats={index * 4}
-                timeSignature={{ noteValue: 4, perMeasure: 4 }}
+                timeSignature={timeSignature}
               >
                 <span>iii</span>
                 <ChordInput

@@ -1,5 +1,5 @@
 import { Box } from "@chakra-ui/react"
-import { TimeSignature } from "../inputs/TimeSignatureInput"
+import { TimeSignature } from "../types"
 import { range } from "../util"
 
 type PropTypes = {

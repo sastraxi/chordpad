@@ -2,3 +2,8 @@
   margin: 0 auto;
   padding: 2rem;
 }
+
+@font-face {
+  font-family: BravuraText;
+  src: url(/BravuraText.woff2);
+}
