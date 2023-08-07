@@ -1,15 +1,15 @@
-import { Box, Flex, HStack, Heading, InputProps } from '@chakra-ui/react'
+import { Box, HStack, Heading } from '@chakra-ui/react'
 import ChordInput from '../inputs/ChordInput'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useRef } from 'react'
 import TimelineItem from './TimelineItem'
 import { UseComboboxGetInputPropsOptions } from 'downshift'
 import TimeSignatureDisplay from '../components/TimeSignatureDisplay'
-import { TimeSignature } from '../types'
 import PopoverInput from '../components/PopoverInput'
 import TimeSignatureInput from '../inputs/TimeSignatureInput'
 import TapBpmInput from '../inputs/TapBpmInput'
 import KeyInput from '../inputs/KeyInput'
 import { useDefaultSongContext, useSection } from '../state/song'
+import { update } from '../util'
 
 type PropTypes = {
   index: number
@@ -17,22 +17,22 @@ type PropTypes = {
 
 const SectionEditor = ({ index }: PropTypes) => {
   const defaultContext = useDefaultSongContext()
-  const { section, setBpm, setKey, setTimeSignature } = useSection(index)
+  const { section, setBpm, setKey, setTimeSignature, setItems } = useSection(index)
   const timeSignature = section.contextOverrides.timeSignature ?? defaultContext.timeSignature
 
   const updateChord = (index: number) => (newChord: string | null) => {
-    // const newChordArray = [
-    //   ...chords.slice(0, index),
-    //   newChord,
-    //   ...chords.slice(index + 1),
-    // ]
+    const newItems = update(section.items, index, { chord: newChord })
 
-    // if (index === chords.length - 1 && newChord) {
-    //   // need empty chord at the end
-    //   newChordArray.push(null)
-    // }
+    if (index === section.items.length - 1 && newChord) {
+      // need empty chord at the end
+      // TODO: deal with this at the UI layer, not the data layer
+      newItems.push({
+        chord: null,
+        durationBeats: section.items[section.items.length - 1].durationBeats,
+      })
+    }
 
-    // setChords(newChordArray)
+    setItems(newItems)
   }
 
   const chordsContainer = useRef<HTMLDivElement | null>(null)

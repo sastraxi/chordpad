@@ -84,10 +84,7 @@ type ContextMutators = {
 }
 
 type SectionMutators = {
-  updateItem: (index: number, replacements: Partial<SectionItem>) => void
-  replaceItem: (index: number, item: SectionItem) => void
-  insertItems: (index: number, items: SectionItem[]) => void
-  removeItems: (fromIndexInclusive: number, endIndexExclusive?: number) => void
+  setItems: (items: SectionItem[]) => void
 }
 
 type SongStateAndMutators = SongState & {
@@ -155,23 +152,6 @@ export const useSection = (index: number): UseSection => {
     setKey: setOrClear('key'),
     setTimeSignature: setOrClear('timeSignature'),
 
-    updateItem: (index: number, updates: Partial<SectionItem>) =>
-      setItems(update(section.items, index, updates)),
-
-    replaceItem: (index: number, item: SectionItem) =>
-      setItems(replace(section.items, index, item)),
-
-    insertItems: (index: number, items: SectionItem[]) =>
-      setItems([
-        ...section.items.slice(0, index),
-        ...items,
-        ...section.items.slice(index),
-      ]),
-
-    removeItems: (fromIndexInclusive: number, endIndexExclusive?: number) =>
-      setItems([
-        ...section.items.slice(0, fromIndexInclusive),
-        ...section.items.slice(endIndexExclusive ?? section.items.length)
-      ])
+    setItems,
   }
 }
