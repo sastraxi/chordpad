@@ -1,11 +1,11 @@
 import { Box, Button, ButtonProps, Editable, EditableInput, EditablePreview, Flex, FormControl, FormLabel, Input, InputProps, ListItem, UnorderedList } from '@chakra-ui/react'
-import { useCombobox } from 'downshift'
+import { UseComboboxGetInputPropsOptions, useCombobox } from 'downshift'
 import { useRef, useState } from 'react'
 
 type PropTypes = {
   value: string | null,
   onChange: (chosenChord: string | null) => void
-  additionalInputProps?: Partial<InputProps>
+  additionalInputProps?: UseComboboxGetInputPropsOptions
 }
 
 const ALL_CHORDS = [
@@ -57,19 +57,21 @@ const ChordInput = ({
   ///////////////////////////////////////////////////
 
   return (
-    <Flex direction="column" position="relative">
+    <Flex direction="column" position="relative" alignItems="flex-start" w={40} h={20}>
       <Editable
+        placeholder="Chord"
         isPreviewFocusable={true}
         value={scratchValue ?? undefined}
         onChange={setScratchValue}
         onSubmit={onChange}
         submitOnBlur={true}
       >
-        <EditablePreview />
+        <EditablePreview
+          color={value ? "black" : "gray.400"}
+        />
         <Input
-          {...additionalInputProps}
           placeholder="Chord"
-          {...getInputProps()}
+          {...getInputProps(additionalInputProps)}
           as={EditableInput}
         />
 

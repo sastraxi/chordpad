@@ -1,4 +1,4 @@
-import { Box, Heading, Divider } from '@chakra-ui/react'
+import { Box, Heading } from '@chakra-ui/react'
 
 import './App.css'
 import Editor from './editor/Editor'
@@ -13,11 +13,10 @@ const App = () => {
     <Box w="100%" display="block">
       <Heading>Chordpad</Heading>
       <Editor />
-      <Divider />
-      <Box>
+      {/* <Box>
         <TapBpmInput value={bpm} onChange={setBpm} />
         <KeyInput value={key} onChange={setKey} />
-      </Box>
+      </Box> */}
     </Box>
   )
 }
