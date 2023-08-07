@@ -1,6 +1,6 @@
-import { Box, Button, ButtonProps, Editable, EditableInput, EditablePreview, Flex, FormControl, FormLabel, Input, InputProps, ListItem, UnorderedList } from '@chakra-ui/react'
+import { Box, Editable, EditableInput, EditablePreview, Flex, Input, ListItem, UnorderedList } from '@chakra-ui/react'
 import { UseComboboxGetInputPropsOptions, useCombobox } from 'downshift'
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 
 type PropTypes = {
   value: string | null,

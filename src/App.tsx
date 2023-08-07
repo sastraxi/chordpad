@@ -1,13 +1,15 @@
 import { Box, Heading } from '@chakra-ui/react'
 
 import './App.css'
-import Editor from './editor/Editor'
+import { useSongSections } from './state/song'
+import SectionEditor from './editor/SectionEditor'
 
 const App = () => {
+  const sections = useSongSections()
+
   return (
     <Box w="100%" display="block">
-      <Editor />
-      <Editor />
+      {sections.map((_, index) => <SectionEditor key={index} index={index} />)}
     </Box>
   )
 }

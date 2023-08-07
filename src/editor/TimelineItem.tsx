@@ -36,20 +36,20 @@ const TimelineItem = ({
               const globalPosition = positionBeats + position
               if (globalPosition % timeSignature.perMeasure === 0) {
                 return (
-                  <>
+                  <g key={`bar-${n}`}>
                     <rect x={position * BEAT_WIDTH_PX} y="0" width="2" height="100" />
                     <text x={position * BEAT_WIDTH_PX + 12} y="86" fontSize="11px">
                       {globalPosition / timeSignature.perMeasure}
                     </text>
-                  </>
+                  </g>
                 )
               } else if (position % 1 === 0) {
                 return (
-                  <rect x={position * BEAT_WIDTH_PX} y="92" width="1.5" height="8" opacity="0.7" />
+                  <rect key={`tick-${n}`} x={position * BEAT_WIDTH_PX} y="92" width="1.5" height="8" opacity="0.7" />
                 )
               } else {
                 return (
-                  <rect x={position * BEAT_WIDTH_PX} y="97" width="1.5" height="3" opacity="0.3" />
+                  <rect key={`tick-${n}`} x={position * BEAT_WIDTH_PX} y="97" width="1.5" height="3" opacity="0.3" />
                 )
               }
             })

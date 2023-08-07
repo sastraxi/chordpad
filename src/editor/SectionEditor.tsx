@@ -9,26 +9,30 @@ import PopoverInput from '../components/PopoverInput'
 import TimeSignatureInput from '../inputs/TimeSignatureInput'
 import TapBpmInput from '../inputs/TapBpmInput'
 import KeyInput from '../inputs/KeyInput'
+import { useDefaultSongContext, useSection } from '../state/song'
 
-const Editor = () => {
-  const [bpm, setBpm] = useState<number>(120)
-  const [key, setKey] = useState<string>("C major")
-  const [timeSignature, setTimeSignature] = useState<TimeSignature>({ noteValue: 4, perMeasure: 4 })
-  const [chords, setChords] = useState<Array<string | null>>(["C", "Cmaj7", "Fm", null])
+type PropTypes = {
+  index: number
+}
+
+const SectionEditor = ({ index }: PropTypes) => {
+  const defaultContext = useDefaultSongContext()
+  const { section, setBpm, setKey, setTimeSignature } = useSection(index)
+  const timeSignature = section.contextOverrides.timeSignature ?? defaultContext.timeSignature
 
   const updateChord = (index: number) => (newChord: string | null) => {
-    const newChordArray = [
-      ...chords.slice(0, index),
-      newChord,
-      ...chords.slice(index + 1),
-    ]
+    // const newChordArray = [
+    //   ...chords.slice(0, index),
+    //   newChord,
+    //   ...chords.slice(index + 1),
+    // ]
 
-    if (index === chords.length - 1 && newChord) {
-      // need empty chord at the end
-      newChordArray.push(null)
-    }
+    // if (index === chords.length - 1 && newChord) {
+    //   // need empty chord at the end
+    //   newChordArray.push(null)
+    // }
 
-    setChords(newChordArray)
+    // setChords(newChordArray)
   }
 
   const chordsContainer = useRef<HTMLDivElement | null>(null)
@@ -86,14 +90,14 @@ const Editor = () => {
           Intro
         </Heading>
         <PopoverInput
-          value={key}
+          value={section.contextOverrides.key ?? defaultContext.key}
           onChange={setKey}
           displayComponent={({ value }) => <span>{value}</span>}
           editorComponent={KeyInput}
           buttonProps={{ size: "sm", w: 32 }}
         />
         <PopoverInput
-          value={bpm}
+          value={section.contextOverrides.bpm ?? defaultContext.bpm}
           onChange={setBpm}
           displayComponent={({ value }) => <span>𝅘𝅥 = {value}</span>}
           editorComponent={TapBpmInput}
@@ -110,18 +114,18 @@ const Editor = () => {
       </HStack>
       <Box ref={chordsContainer} maxWidth="1200px">
         {
-          chords.map((chord, index) => {
+          section.items.map((item, index) => {
             return (
               <TimelineItem
                 key={index}
-                durationBeats={4}
+                durationBeats={item.durationBeats}
                 positionBeats={index * 4}
                 timeSignature={timeSignature}
               >
                 <span>iii</span>
                 <ChordInput
                   key={index}
-                  value={chord}
+                  value={item.chord}
                   onChange={updateChord(index)}
                   additionalInputProps={inputProps}
                 />
@@ -134,4 +138,4 @@ const Editor = () => {
   )
 }
 
-export default Editor
+export default SectionEditor
