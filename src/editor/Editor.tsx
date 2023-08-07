@@ -1,7 +1,8 @@
 import { Box, Flex, InputProps } from '@chakra-ui/react'
 import ChordInput from '../inputs/ChordInput'
 import { useCallback, useRef, useState } from 'react'
-import TimelineChord from './TimelineChord'
+import TimelineItem from './TimelineItem'
+import { UseComboboxGetInputPropsOptions } from 'downshift'
 
 const Editor = () => {
   const [chords, setChords] = useState<Array<string | null>>(["C", "Cmaj7", "Fm", null])
@@ -23,11 +24,6 @@ const Editor = () => {
     }
 
   const chordsContainer = useRef<HTMLDivElement | null>(null)
-
-  /*
-    spacebar: always "accept best suggestion"
-    
-  */
 
   const navigate = (chordInput: HTMLInputElement, delta: number) => {
     if (!chordsContainer.current) throw new Error("Chords container is not mounted!")
@@ -51,6 +47,8 @@ const Editor = () => {
 
         // go back down to the actual input
         (node.querySelector(".chakra-editable__preview") as HTMLSpanElement).focus()
+        // TODO: refactor to not use chakra editable; just show input
+        // TODO: set selection range as appropriate on newly-focused input
         return true
       } else {
         node = node.parentNode as HTMLDivElement
@@ -63,26 +61,23 @@ const Editor = () => {
   const onKeyDown = useCallback<React.KeyboardEventHandler<HTMLInputElement>>((e) => {
     const target = e.target as HTMLInputElement
     if (e.key === 'ArrowLeft' && target.selectionStart === 0) {
-      console.log('left')
       navigate(target, -1)
-
     } else if (e.key === 'ArrowRight' && target.selectionStart === target.value.length) {
-      console.log('right')
       navigate(target, 1)
     }
   }, [])
 
-  const inputProps = {
+  const inputProps: UseComboboxGetInputPropsOptions = {
     onKeyDown,
   }
 
   return (
     <Box>
-      <Flex ref={chordsContainer}>
+      <Box ref={chordsContainer} maxWidth="1200px">
         {
           chords.map((chord, index) => {
             return (
-              <TimelineChord
+              <TimelineItem
                 key={index}
                 durationBeats={4}
                 positionBeats={index * 4}
@@ -95,11 +90,11 @@ const Editor = () => {
                   onChange={updateChord(index)}
                   additionalInputProps={inputProps}
                 />
-              </TimelineChord>
+              </TimelineItem>
             )
           })
         }
-      </Flex>
+      </Box>
     </Box>
   )
 }

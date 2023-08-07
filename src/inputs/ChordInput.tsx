@@ -56,10 +56,13 @@ const ChordInput = ({
 
   ///////////////////////////////////////////////////
 
+  // TODO: on tab or spacebar, set chord if current value is not valid
+  // TODO: on escape, abandon scratch value
+
   return (
     <Flex direction="column" position="relative" alignItems="flex-start" w={40} h={20}>
       <Editable
-        placeholder="Chord"
+        placeholder="--"
         isPreviewFocusable={true}
         value={scratchValue ?? undefined}
         onChange={setScratchValue}
