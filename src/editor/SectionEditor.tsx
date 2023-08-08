@@ -7,6 +7,8 @@ import { useDefaultSongContext, useSection } from '../state/song'
 import { update } from '../util'
 import SongContextEditor from './SongContextEditor'
 
+import { getRomanNumeral } from 'noteynotes/theory/triads'
+
 type PropTypes = {
   index: number
 }
@@ -14,7 +16,9 @@ type PropTypes = {
 const SectionEditor = ({ index }: PropTypes) => {
   const defaultContext = useDefaultSongContext()
   const { section, setItems, setTitle, ...contextMutators } = useSection(index)
+
   const timeSignature = section.contextOverrides.timeSignature ?? defaultContext.timeSignature
+  const key = section.contextOverrides.key ?? defaultContext.key
 
   const updateChord = (index: number) => (newChord: string | null) => {
     const newItems = update(section.items, index, { chord: newChord })
@@ -115,7 +119,7 @@ const SectionEditor = ({ index }: PropTypes) => {
                 positionBeats={index * 4}
                 timeSignature={timeSignature}
               >
-                <span>iii</span>
+                {item.chord && <span>{getRomanNumeral(key, item.chord)}</span>}
                 <ChordInput
                   key={index}
                   value={item.chord}
