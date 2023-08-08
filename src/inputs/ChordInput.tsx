@@ -53,7 +53,7 @@ const ChordInput = ({
   // TODO: on escape, abandon scratch value
 
   return (
-    <Flex direction="column" position="relative" alignItems="flex-start" w={40} h={20}>
+    <Flex direction="column" position="relative" alignItems="flex-start" w={40}>
       <Editable
         placeholder="--"
         isPreviewFocusable={true}

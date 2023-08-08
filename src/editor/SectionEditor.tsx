@@ -1,4 +1,4 @@
-import { Box, Editable, EditableInput, EditablePreview, HStack, Heading } from '@chakra-ui/react'
+import { Badge, Box, Code, Editable, EditableInput, EditablePreview, HStack, Heading, Kbd, Text } from '@chakra-ui/react'
 import ChordInput from '../inputs/ChordInput'
 import { useCallback, useRef, useState } from 'react'
 import TimelineItem from './TimelineItem'
@@ -119,7 +119,9 @@ const SectionEditor = ({ index }: PropTypes) => {
                 positionBeats={index * 4}
                 timeSignature={timeSignature}
               >
-                {item.chord && <span>{getRomanNumeral(key, item.chord)}</span>}
+                <Kbd opacity={item.chord ? 1 : 0} colorScheme="gray" fontSize="sm" pt={1}>
+                  {item.chord && getRomanNumeral(key, item.chord)}
+                </Kbd>
                 <ChordInput
                   key={index}
                   value={item.chord}
