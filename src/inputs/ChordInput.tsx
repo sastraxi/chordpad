@@ -12,7 +12,6 @@ type PropTypes = {
 
 // FIXME: enharmonics are missing; "Dm" vs "D minor"; piano chords should be source-of-truth
 const ALL_CHORDS = ALL_GUITAR_CHORDS.map(combineChord)
-const MAX_SUGGESTIONS = 10
 
 const getChordsFilter = (userInput?: string) => {
   const lower = userInput?.toLowerCase()
@@ -34,7 +33,7 @@ const ChordInput = ({
     getMenuProps,
   } = useCombobox({
     onInputValueChange({ inputValue }) {
-      setChords(ALL_CHORDS.filter(getChordsFilter(inputValue)).slice(0, MAX_SUGGESTIONS))
+      setChords(ALL_CHORDS.filter(getChordsFilter(inputValue)))
     },
     items: chords,
     itemToString: item => item ?? '',
@@ -86,7 +85,14 @@ const ChordInput = ({
         {...getMenuProps()}
       >
         {isOpen &&
-          <Box padding={1} boxShadow="xl" borderRadius="md" background="white">
+          <Box
+            padding={1}
+            boxShadow="xl"
+            borderRadius="md"
+            background="white"
+            maxH="400px"
+            overflowY="auto"
+          >
             {
               chords.map((item, index) => {
                 const selected = index === highlightedIndex

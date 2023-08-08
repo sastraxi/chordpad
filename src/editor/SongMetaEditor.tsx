@@ -25,11 +25,15 @@ const SongMetaEditor = () => {
         <EditablePreview />
         <EditableInput />
       </Editable>
-      <SongContextEditor context={context} mutators={mutators} />
+      <SongContextEditor context={context} mutators={mutators} buttonProps={{ size: "md" }} />
       <HStack spacing={6} ml={12}>
         <HStack>
+          <Kbd>drag</Kbd>
+          <Text fontSize="sm">to resize / move</Text>
+        </HStack>
+        <HStack>
           <Kbd>ctrl</Kbd>
-          <Text fontSize="sm">ripple edit</Text>
+          <Text fontSize="sm">ripple edit / clone</Text>
         </HStack>
       </HStack>
     </HStack>

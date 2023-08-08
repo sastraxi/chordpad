@@ -10,17 +10,20 @@ type PropTypes = {
   context: SongContext
   overrides?: Partial<SongContext>
   mutators: ContextMutators
+  buttonProps?: Partial<ButtonProps>
 }
 
 const SongContextEditor = ({
   context,
   overrides,
   mutators: { setBpm, setKey, setTimeSignature },
+  buttonProps = {}
 }: PropTypes) => {
   const commonProps: Partial<ButtonProps> = {
     size: 'sm',
     colorScheme: overrides ? "blackAlpha" : "gray",
     borderWidth: 2,
+    ...buttonProps,
   }
   return (
     <>

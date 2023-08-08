@@ -86,7 +86,6 @@ const SectionEditor = ({ index }: PropTypes) => {
     onKeyDown,
   }
 
-
   return (
     <Box>
       <HStack py={2}>
