@@ -2,24 +2,17 @@ import { Box, Editable, EditableInput, EditablePreview, Flex, Input, ListItem, U
 import { UseComboboxGetInputPropsOptions, useCombobox } from 'downshift'
 import { useState } from 'react'
 
+import { ALL_GUITAR_CHORDS, combineChord } from 'noteynotes/theory/guitar'
+
 type PropTypes = {
   value: string | null,
   onChange: (chosenChord: string | null) => void
   additionalInputProps?: UseComboboxGetInputPropsOptions
 }
 
-const ALL_CHORDS = [
-  "C",
-  "Cm",
-  "Caug",
-  "Cb5",
-  "Cmaj7",
-  "Cmaj9",
-  "Cmmaj7",
-  "Cmajb9",
-  "C#",
-  "C#b7",
-]
+// FIXME: enharmonics are missing; "Dm" vs "D minor"; piano chords should be source-of-truth
+const ALL_CHORDS = ALL_GUITAR_CHORDS.map(combineChord)
+const MAX_SUGGESTIONS = 10
 
 const getChordsFilter = (userInput?: string) => {
   const lower = userInput?.toLowerCase()
@@ -41,7 +34,7 @@ const ChordInput = ({
     getMenuProps,
   } = useCombobox({
     onInputValueChange({ inputValue }) {
-      setChords(ALL_CHORDS.filter(getChordsFilter(inputValue)))
+      setChords(ALL_CHORDS.filter(getChordsFilter(inputValue)).slice(0, MAX_SUGGESTIONS))
     },
     items: chords,
     itemToString: item => item ?? '',

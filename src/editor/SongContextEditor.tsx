@@ -32,7 +32,8 @@ const SongContextEditor = ({
         buttonProps={{
           ...commonProps,
           w: 32,
-          variant: !overrides || overrides?.key ? 'solid' : 'ghost'
+          variant: !overrides || overrides?.key ? 'solid' : 'ghost',
+          colorScheme: overrides?.key ? 'blue' : commonProps.colorScheme,
         }}
       />
       <PopoverInput
@@ -43,7 +44,8 @@ const SongContextEditor = ({
         closeOnChange
         buttonProps={{
           ...commonProps,
-          variant: !overrides || overrides?.timeSignature ? 'solid' : 'ghost'
+          variant: !overrides || overrides?.timeSignature ? 'solid' : 'ghost',
+          colorScheme: overrides?.timeSignature ? 'blue' : commonProps.colorScheme,
         }}
       />
       <PopoverInput
@@ -54,7 +56,8 @@ const SongContextEditor = ({
         buttonProps={{
           ...commonProps,
           w: 16,
-          variant: !overrides || overrides?.bpm ? 'solid' : 'ghost'
+          variant: !overrides || overrides?.bpm ? 'solid' : 'ghost',
+          colorScheme: overrides?.bpm ? 'blue' : commonProps.colorScheme,
         }}
       />
     </>

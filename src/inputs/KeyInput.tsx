@@ -29,6 +29,7 @@ const KeyInput = ({
   const [currentNote, currentMode] = value.split(' ')
 
   // TODO: normalize key names we set based on circle of 5ths
+  // FIXME: possible to crash the app by selecting specific keys --> enharmonics
 
   return (
     <Flex>
