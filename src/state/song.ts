@@ -58,6 +58,7 @@ export type SongState = {
 }
 
 const DEFAULT_SONG: SongState = {
+  title: 'My song',
   context: {
     bpm: 120,
     key: 'C major',
@@ -77,7 +78,9 @@ const DEFAULT_SONG: SongState = {
   ]
 }
 
-type ContextMutators = {
+//////////////////////////////////////////////////////////
+
+export type ContextMutators = {
   setBpm: (bpm: number | null) => void
   setKey: (key: string | null) => void
   setTimeSignature: (timeSignature: TimeSignature | null) => void
@@ -85,12 +88,19 @@ type ContextMutators = {
 
 type SectionMutators = {
   setItems: (items: SectionItem[]) => void
+  setTitle: (title: string) => void
 }
 
 type SongStateAndMutators = SongState & {
   resetSong: () => void
+  setDefaultContext: (contextOverrides: Partial<SongContext>) => void
+  setAuthor: (author: string) => void
+  setTitle: (author: string) => void
+
+  addSection: () => void
   setSectionItems: (index: number, items: Array<SectionItem>) => void
   setSectionContext: (index: number, contextOverrides: Partial<SongContext>) => void
+  setSectionTitle: (index: number, title: string) => void
 }
 
 export const useSongState = create<SongStateAndMutators>()(
@@ -99,6 +109,16 @@ export const useSongState = create<SongStateAndMutators>()(
       ...DEFAULT_SONG,
 
       resetSong: () => set(() => DEFAULT_SONG),
+
+      setAuthor: (author: string) => set(() => ({ author })),
+      setTitle: (title: string) => set(() => ({ title })),
+      setDefaultContext: (contextOverrides: Partial<SongContext>) =>
+        set((state) => ({
+          context: {
+            ...state.context,
+            ...contextOverrides,
+          }
+        })),
 
       setSectionItems: (index: number, items: Array<SectionItem>) =>
         set((state) => ({
@@ -110,6 +130,22 @@ export const useSongState = create<SongStateAndMutators>()(
           sections: update(state.sections, index, { contextOverrides })
         })),
 
+      setSectionTitle: (index: number, title: string) =>
+        set((state) => ({
+          sections: update(state.sections, index, { title })
+        })),
+
+      addSection: () => set((state) => ({
+        sections: [...state.sections, {
+          contextOverrides: {},
+          rhythmOverrides: new Map(),
+          items: [{
+            chord: null,
+            durationBeats: 4,
+          }],
+        }]
+      }))
+
     }),
     {
       name: 'chordpad-song',
@@ -118,9 +154,43 @@ export const useSongState = create<SongStateAndMutators>()(
   )
 )
 
-export const useDefaultSongContext = () => useSongState(state => state.context)
-export const useSongSections = () => useSongState(state => state.sections)
 export const useResetSong = () => useSongState(state => state.resetSong)
+
+//////////////////////////////////////////////////////////
+
+export const useSongMeta = () => useSongState(state => ({
+  title: state.title,
+  setTitle: state.setTitle,
+  author: state.author,
+  setAuthor: state.setAuthor,
+}))
+
+//////////////////////////////////////////////////////////\
+
+export const useDefaultSongContext = () => useSongState(state => state.context)
+export const useMutateDefaultSongContext = (): ContextMutators => useSongState(state => {
+  const updateDefaultContext = <T extends keyof SongContext>(key: T) => (value: SongContext[T] | null) => {
+    if (value === null) throw new Error(`Cannot set ${key} of the default context to null`)
+    state.setDefaultContext({
+      ...state.context,
+      [key]: value,
+    })
+  }
+
+  return {
+    setBpm: updateDefaultContext('bpm'),
+    setKey: updateDefaultContext('key'),
+    setTimeSignature: updateDefaultContext('timeSignature'),
+  }
+})
+
+
+//////////////////////////////////////////////////////////
+
+export const useSongSections = () => useSongState(state => ({
+  sections: state.sections,
+  addSection: state.addSection,
+}))
 
 type UseSection = ContextMutators & SectionMutators & { section: SongSection }
 
@@ -129,9 +199,9 @@ export const useSection = (index: number): UseSection => {
   const section = useSongState(state => state.sections[index])
   const setSectionItems = useSongState(state => state.setSectionItems)
   const setSectionContext = useSongState(state => state.setSectionContext)
-  const setItems = (items: SectionItem[]) => setSectionItems(index, items)
-  const setContext = (context: Partial<SongContext>) => setSectionContext(index, context)
+  const setSectionTitle = useSongState(state => state.setSectionTitle)
 
+  const setContext = (context: Partial<SongContext>) => setSectionContext(index, context)
   const setOrClear = <T extends keyof SongContext>(key: T) => (value: SongContext[T] | null) => {
     if (value === null || value === defaultContext[key]) {
       const context = { ...section.contextOverrides }
@@ -148,10 +218,12 @@ export const useSection = (index: number): UseSection => {
   return {
     section,
 
+
     setBpm: setOrClear('bpm'),
     setKey: setOrClear('key'),
     setTimeSignature: setOrClear('timeSignature'),
 
-    setItems,
+    setItems: (items: SectionItem[]) => setSectionItems(index, items),
+    setTitle: (title: string) => setSectionTitle(index, title),
   }
 }

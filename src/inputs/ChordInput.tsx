@@ -68,14 +68,18 @@ const ChordInput = ({
         onChange={setScratchValue}
         onSubmit={onChange}
         submitOnBlur={true}
+        fontSize="xl"
+        backgroundColor="white"
+        p={0}
       >
         <EditablePreview
           color={value ? "black" : "gray.400"}
         />
         <Input
-          placeholder="Chord"
           {...getInputProps(additionalInputProps)}
           as={EditableInput}
+          fontSize="xl"
+          p={0}
         />
 
       </Editable>

@@ -1,15 +1,11 @@
-import { Box, HStack, Heading } from '@chakra-ui/react'
+import { Box, Editable, EditableInput, EditablePreview, HStack, Heading } from '@chakra-ui/react'
 import ChordInput from '../inputs/ChordInput'
-import { useCallback, useRef } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import TimelineItem from './TimelineItem'
 import { UseComboboxGetInputPropsOptions } from 'downshift'
-import TimeSignatureDisplay from '../components/TimeSignatureDisplay'
-import PopoverInput from '../components/PopoverInput'
-import TimeSignatureInput from '../inputs/TimeSignatureInput'
-import TapBpmInput from '../inputs/TapBpmInput'
-import KeyInput from '../inputs/KeyInput'
 import { useDefaultSongContext, useSection } from '../state/song'
 import { update } from '../util'
+import SongContextEditor from './SongContextEditor'
 
 type PropTypes = {
   index: number
@@ -17,7 +13,7 @@ type PropTypes = {
 
 const SectionEditor = ({ index }: PropTypes) => {
   const defaultContext = useDefaultSongContext()
-  const { section, setBpm, setKey, setTimeSignature, setItems } = useSection(index)
+  const { section, setItems, setTitle, ...contextMutators } = useSection(index)
   const timeSignature = section.contextOverrides.timeSignature ?? defaultContext.timeSignature
 
   const updateChord = (index: number) => (newChord: string | null) => {
@@ -79,37 +75,34 @@ const SectionEditor = ({ index }: PropTypes) => {
     }
   }, [])
 
+
+  const [scratchTitle, setScratchTitle] = useState<string | undefined>(undefined)
+
   const inputProps: UseComboboxGetInputPropsOptions = {
     onKeyDown,
   }
 
+
   return (
     <Box>
       <HStack py={2}>
-        <Heading size="md">
-          Intro
-        </Heading>
-        <PopoverInput
-          value={section.contextOverrides.key ?? defaultContext.key}
-          onChange={setKey}
-          displayComponent={({ value }) => <span>{value}</span>}
-          editorComponent={KeyInput}
-          buttonProps={{ size: "sm", w: 32 }}
-        />
-        <PopoverInput
-          value={section.contextOverrides.bpm ?? defaultContext.bpm}
-          onChange={setBpm}
-          displayComponent={({ value }) => <span>𝅘𝅥 = {value}</span>}
-          editorComponent={TapBpmInput}
-          buttonProps={{ size: "sm", w: 16 }}
-        />
-        <PopoverInput
-          value={timeSignature}
-          onChange={setTimeSignature}
-          displayComponent={TimeSignatureDisplay}
-          editorComponent={TimeSignatureInput}
-          closeOnChange
-          buttonProps={{ size: "sm" }}
+        <Editable
+          isPreviewFocusable={true}
+          placeholder="New section"
+          value={scratchTitle ?? section.title}
+          onChange={setScratchTitle}
+          onSubmit={title => { setTitle(title); setScratchTitle(undefined) }}
+          submitOnBlur={true}
+          fontSize="2xl"
+          minW={40}
+        >
+          <EditablePreview />
+          <EditableInput />
+        </Editable>
+        <SongContextEditor
+          context={defaultContext}
+          overrides={section.contextOverrides}
+          mutators={contextMutators}
         />
       </HStack>
       <Box ref={chordsContainer} maxWidth="1200px">

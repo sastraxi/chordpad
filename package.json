@@ -16,6 +16,8 @@
     "framer-motion": "^10.15.0",
     "noteynotes": "https://github.com/sastraxi/noteynotes",
     "react": "^18.2.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.2.0",
     "zustand": "^4.3.8"
   },

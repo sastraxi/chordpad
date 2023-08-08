@@ -99,6 +99,7 @@ const TapBpmInput = ({
           min={min}
           max={max}
           onChange={onChange}
+
         >
           <SliderTrack>
             <SliderFilledTrack />
