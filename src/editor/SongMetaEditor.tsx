@@ -29,11 +29,13 @@ const SongMetaEditor = () => {
       <HStack spacing={6} ml={12}>
         <HStack>
           <Kbd>drag</Kbd>
-          <Text fontSize="sm">to resize / move</Text>
+          <Text fontSize="sm">to select / move / resize</Text>
         </HStack>
         <HStack>
           <Kbd>ctrl</Kbd>
-          <Text fontSize="sm">ripple edit / clone</Text>
+          <Text fontSize="sm">+</Text>
+          <Kbd>drag</Kbd>
+          <Text fontSize="sm">to box select / clone / ripple edit</Text>
         </HStack>
       </HStack>
     </HStack>
