@@ -1,6 +1,6 @@
 import { Badge, Box, Code, Editable, EditableInput, EditablePreview, HStack, Heading, Kbd, Text } from '@chakra-ui/react'
 import ChordInput from '../inputs/ChordInput'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import TimelineItem from './TimelineItem'
 import { UseComboboxGetInputPropsOptions } from 'downshift'
 import { useDefaultSongContext, useSection } from '../state/song'
@@ -13,9 +13,9 @@ type PropTypes = {
   index: number
 }
 
-const SectionEditor = ({ index }: PropTypes) => {
+const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
   const defaultContext = useDefaultSongContext()
-  const { section, setItems, setTitle, ...contextMutators } = useSection(index)
+  const { section, setItems, setTitle, ...contextMutators } = useSection(sectionIndex)
 
   const timeSignature = section.contextOverrides.timeSignature ?? defaultContext.timeSignature
   const key = section.contextOverrides.key ?? defaultContext.key
@@ -86,6 +86,17 @@ const SectionEditor = ({ index }: PropTypes) => {
     onKeyDown,
   }
 
+  const positions = useMemo(() => {
+    return section.items.reduce<Array<number>>((positions, _item, index) => {
+      if (index === 0) {
+        positions.push(0)
+      } else {
+        positions.push(section.items[index - 1].durationBeats + positions[index - 1])
+      }
+      return positions
+    }, [])
+  }, [section.items])
+
   return (
     <Box>
       <HStack py={2}>
@@ -108,14 +119,14 @@ const SectionEditor = ({ index }: PropTypes) => {
           mutators={contextMutators}
         />
       </HStack>
-      <Box ref={chordsContainer} maxWidth="1200px">
+      <Box ref={chordsContainer} maxWidth="1200px" onDragOver={(e) => { e.preventDefault(); return false; }}>
         {
           section.items.map((item, index) => {
             return (
               <TimelineItem
                 key={index}
-                durationBeats={item.durationBeats}
-                positionBeats={index * 4}
+                coordinate={{ item: index, section: sectionIndex }}
+                positionBeats={positions[index]}
                 timeSignature={timeSignature}
               >
                 <Kbd opacity={item.chord ? 1 : 0} colorScheme="gray" fontSize="sm" pt={1}>

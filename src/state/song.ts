@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { TimeSignature } from '../types'
+import { ItemIndex, TimeSignature } from '../types'
 import { replace, update } from '../util'
 
 export type Rhythm = {
@@ -218,12 +218,24 @@ export const useSection = (index: number): UseSection => {
   return {
     section,
 
-
     setBpm: setOrClear('bpm'),
     setKey: setOrClear('key'),
     setTimeSignature: setOrClear('timeSignature'),
 
     setItems: (items: SectionItem[]) => setSectionItems(index, items),
     setTitle: (title: string) => setSectionTitle(index, title),
+  }
+}
+
+export const useSectionItem = ({ section: sectionIndex, item: itemIndex }: ItemIndex) => {
+  const sectionItems = useSongState(state => state.sections[sectionIndex].items)
+  const setSectionItems = useSongState(state => state.setSectionItems)
+  const updateItem = (updates: Partial<SectionItem>) => setSectionItems(
+    sectionIndex,
+    update(sectionItems, itemIndex, updates),
+  )
+  return {
+    item: sectionItems[itemIndex],
+    updateItem,
   }
 }

@@ -5,14 +5,6 @@
   // depending on where the drop x is (lte 50% or greater).
   // we need to make sure the right-side of 0 looks like the left-side of 1, for example
 
-  // TODO: resizing
-  // we also need a separate drag system for resizing with live preview depending on the (x, y)
-  // position of dragging the drag handle. The entirety of the section editor will be the drop
-  // target, and we should spill this past the current height of the container so that
-  // elements can be extended arbitrarily. Update the durationBeats value
-  // iteractively so the whole page reflows properly
-  // (drag handle is on the left; extra "--" at end allows this. First handle cannot be dragged)
-
   // TODO: resizing: ripple edit mode
   // when holding CTRL down and resizing, we'll be restricting the potential durationBeats that
   // we can explore, and also "fixing up" the neighbouring items so that only the chord in question
