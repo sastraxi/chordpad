@@ -2,26 +2,39 @@ import { Box, Editable, EditableInput, EditablePreview, Flex, Input, ListItem, U
 import { UseComboboxGetInputPropsOptions, useCombobox } from 'downshift'
 import { useState } from 'react'
 
-import { ALL_CHORD_NAMES } from 'noteynotes/theory/chords'
+import { ALL_CHORD_NAMES, isValidChord } from 'noteynotes/theory/chords'
 
 type PropTypes = {
   value: string | null,
   onChange: (chosenChord: string | null) => void
+  onClear?: () => void
   additionalInputProps?: UseComboboxGetInputPropsOptions
 }
 
 const getChordsFilter = (userInput?: string) => {
-  const lower = userInput?.toLowerCase()
-  return (chord: string) => !lower || chord.toLowerCase().startsWith(lower)
+  const lower = userInput?.replace(" ", "").toLowerCase()
+  return (chord: string) => !lower || chord.toLowerCase().replace(" ", "").startsWith(lower)
 }
 
 const ChordInput = ({
   value,
   onChange,
+  onClear,
   additionalInputProps = {},
 }: PropTypes) => {
   const [chords, setChords] = useState<string[]>([])
-  const [scratchValue, setScratchValue] = useState(value)
+  const [scratchValue, setScratchValue] = useState<string | undefined>(undefined)
+
+  const commit = (value: string | null | undefined) => {
+    const potentialValue = value?.trim()
+    if (potentialValue && isValidChord(potentialValue)) {
+      onChange(potentialValue)
+    } else if (!potentialValue) {
+      onClear?.()
+    }
+    setScratchValue(undefined)
+  }
+
   const {
     isOpen,
     getInputProps,
@@ -37,10 +50,23 @@ const ChordInput = ({
     itemToString: item => item ?? '',
     selectedItem: value,
     onSelectedItemChange: ({ selectedItem }) => {
-      if (selectedItem) {
-        onChange(selectedItem)
-        setScratchValue(selectedItem)
+      commit(selectedItem)
+    },
+    stateReducer: (state, { type, changes }) => {
+      switch (type) {
+        case useCombobox.stateChangeTypes.InputKeyDownEnter:
+        case useCombobox.stateChangeTypes.InputBlur: {
+          if (chords.length === 1) {
+            // select the only chord
+            return { ...changes, selectedItem: chords[0] }
+          } else if (state.inputValue.trim() === '') {
+            // delete this input, if configured
+            // FIXME: setTimeout prevents react sadness. Better way is to queue delete with state
+            setTimeout(() => onClear?.(), 0)
+          }
+        }
       }
+      return changes
     },
   })
 
@@ -49,21 +75,23 @@ const ChordInput = ({
   // TODO: on tab or spacebar, set chord if current value is not valid
   // TODO: on escape, abandon scratch value
 
+  const currentValue = scratchValue ?? value ?? undefined
+
   return (
     <Flex direction="column" position="relative" alignItems="flex-start" w={40}>
       <Editable
         placeholder="--"
         isPreviewFocusable={true}
-        value={scratchValue ?? undefined}
+        value={currentValue ?? ""}
         onChange={setScratchValue}
-        onSubmit={onChange}
+        onSubmit={commit}
         submitOnBlur={true}
         fontSize="xl"
         backgroundColor="white"
         p={0}
       >
         <EditablePreview
-          color={scratchValue ? "black" : "gray.400"}
+          color={currentValue ? "black" : "gray.400"}
         />
         <Input
           {...getInputProps(additionalInputProps)}

@@ -7,6 +7,11 @@ export const replace = <T>(array: Array<T>, index: number, item: T): Array<T> =>
   ...array.slice(index + 1),
 ])
 
+export const remove = <T>(array: Array<T>, index: number): Array<T> => ([
+  ...array.slice(0, index),
+  ...array.slice(index + 1),
+])
+
 export const update = <T>(array: Array<T>, index: number, updates: Partial<T>): Array<T> => ([
   ...array.slice(0, index),
   { ...array[index], ...updates },

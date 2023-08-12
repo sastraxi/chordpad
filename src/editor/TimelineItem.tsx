@@ -1,10 +1,10 @@
-import { Box } from "@chakra-ui/react"
-import { ItemIndex, TimeSignature } from "../types"
+import { Box, BoxProps } from "@chakra-ui/react"
+import { TimeSignature } from "../types"
 import { range } from "../util"
 import { useRef, useState } from "react"
 import { useSelection } from "../state/selection"
 import { useGlobalScale } from "../state/global-scale"
-import { useSectionItem } from "../state/song"
+import { BaseTimelineItem } from "../state/song"
 
 const constrain = (val: number, min: number, max: number) =>
   Math.max(min, Math.min(max, val))
@@ -15,7 +15,8 @@ type Coordinate = {
 }
 
 type PropTypes = {
-  coordinate: ItemIndex
+  item: BaseTimelineItem
+  updateItem?: (updates: Partial<BaseTimelineItem>) => void
   positionBeats: number
   timeSignature: TimeSignature
   children: React.ReactNode
@@ -23,15 +24,14 @@ type PropTypes = {
 }
 
 const TimelineItem = ({
-  coordinate,
+  item,
+  updateItem,
   positionBeats,
   timeSignature,
   children,
   subdivisions = 4,
 }: PropTypes) => {
-
   const { beatWidth, measuresPerLine, lineHeight } = useGlobalScale()
-  const { item, updateItem } = useSectionItem(coordinate)
 
   const [dragAnchor, setDragAnchor] = useState<Coordinate | undefined>(undefined)
   const [scratchDuration, setScratchDuration] = useState(item.durationBeats)
@@ -46,8 +46,6 @@ const TimelineItem = ({
   ////////////////////////////////////////////////////////
 
   const container = useRef<HTMLDivElement | null>(null)
-
-  const ignore: React.MouseEventHandler<HTMLDivElement> = (e) => e.preventDefault()
 
   const onDragStart: React.DragEventHandler<HTMLDivElement> = (e) => {
     e.stopPropagation()
@@ -87,7 +85,7 @@ const TimelineItem = ({
 
     const durationBeats = item.durationBeats + delta
     setScratchDuration(durationBeats)
-    updateItem({ durationBeats })
+    updateItem?.({ durationBeats })
     setDragAnchor(undefined)
 
     return false
@@ -95,29 +93,29 @@ const TimelineItem = ({
 
   ////////////////////////////////////////////////////////
 
-  const viewBox = `0 0 ${width} 100`
-
   return (
     <Box ref={container} w={`${width}px`} h={`${lineHeight}px`} position="relative" display="inline-block">
-      <Box
-        position="absolute"
-        right="-6px"
-        top="0"
-        height="100%"
-        width="10px"
-        cursor="col-resize"
-        onDragStart={onDragStart}
-        onDragEnd={onDragEnd}
-        onDrag={onDrag}
-        backgroundColor="transparent"
-        opacity="0.3"
-        zIndex="99"
-        draggable="true"
-      />
+      {updateItem &&
+        <Box
+          position="absolute"
+          right="-6px"
+          top="0"
+          height="100%"
+          width="10px"
+          cursor="col-resize"
+          backgroundColor="transparent"
+          opacity="0.3"
+          zIndex="99"
+          draggable="true"
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          onDrag={onDrag}
+        />
+      }
       <Box position="absolute" left="10px" top="5px">
         {children}
       </Box>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox={viewBox}>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 ${width} 100`}>
         <g fill="#5f5f5f">
           {
             range(scratchDuration * subdivisions).map((n) => {

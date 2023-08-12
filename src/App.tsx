@@ -1,4 +1,4 @@
-import { Box, Button, HStack } from '@chakra-ui/react'
+import { Box, Button, Flex, HStack } from '@chakra-ui/react'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 
@@ -12,7 +12,7 @@ const App = () => {
   const { sections, addSection } = useSongSections()
 
   return (
-    <Box w="100%" display="block">
+    <Flex direction="column" alignItems="flex-start" display="block">
       <SongMetaEditor />
       <DndProvider backend={HTML5Backend}>
         {sections.map((_, index) => <SectionEditor key={index} index={index} />)}
@@ -22,7 +22,7 @@ const App = () => {
           Add section
         </Button>
       </HStack>
-    </Box>
+    </Flex>
   )
 }
 

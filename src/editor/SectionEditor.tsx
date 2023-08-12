@@ -1,12 +1,13 @@
-import { Badge, Box, Code, Editable, EditableInput, EditablePreview, HStack, Heading, Kbd, Text } from '@chakra-ui/react'
+import { Box, Editable, EditableInput, EditablePreview, HStack, Kbd } from '@chakra-ui/react'
 import ChordInput from '../inputs/ChordInput'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import TimelineItem from './TimelineItem'
 import { UseComboboxGetInputPropsOptions } from 'downshift'
 import { useDefaultSongContext, useSection } from '../state/song'
-import { update } from '../util'
+import { remove, update } from '../util'
 import SongContextEditor from './SongContextEditor'
 
+import { isValidChord } from 'noteynotes/theory/chords'
 import { getRomanNumeral } from 'noteynotes/theory/triads'
 
 type PropTypes = {
@@ -20,19 +21,22 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
   const timeSignature = section.contextOverrides.timeSignature ?? defaultContext.timeSignature
   const key = section.contextOverrides.key ?? defaultContext.key
 
-  const updateChord = (index: number) => (newChord: string | null) => {
-    const newItems = update(section.items, index, { chord: newChord })
+  const updateChord = (index: number) =>
+    (newChord: string | null) => setItems(update(section.items, index, { chord: newChord }))
 
-    if (index === section.items.length - 1 && newChord) {
-      // need empty chord at the end
-      // TODO: deal with this at the UI layer, not the data layer
-      newItems.push({
-        chord: null,
-        durationBeats: section.items[section.items.length - 1].durationBeats,
-      })
-    }
+  const removeChord = (index: number) =>
+    () => setItems(remove(section.items, index))
 
-    setItems(newItems)
+  const addChord = (newChord: string | null) => {
+    if (!newChord) return
+    if (!isValidChord(newChord)) return
+    setItems([
+      ...section.items,
+      {
+        chord: newChord,
+        durationBeats: timeSignature.perMeasure,
+      },
+    ])
   }
 
   const chordsContainer = useRef<HTMLDivElement | null>(null)
@@ -119,19 +123,15 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
       </HStack>
       <Box ref={chordsContainer} maxWidth="1200px" onDragOver={(e) => { e.preventDefault(); return false; }}>
         {
+          /* all items that exist in state */
           section.items.map((item, index) => {
-            let romanNumeral: string | undefined = undefined
-            try {
-              if (item.chord) {
-                romanNumeral = getRomanNumeral(key, item.chord)
-              }
-            } catch (e) {
-              console.error('invalid chord', item.chord)
-            }
+            const isValid = item.chord ? isValidChord(item.chord) : false
+            const romanNumeral: string | undefined = isValid ? getRomanNumeral(key, item.chord!) : undefined
             return (
               <TimelineItem
                 key={index}
-                coordinate={{ item: index, section: sectionIndex }}
+                item={item}
+                updateItem={(updates) => update(section.items, index, updates)}
                 positionBeats={positions[index]}
                 timeSignature={timeSignature}
               >
@@ -142,12 +142,26 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
                   key={index}
                   value={item.chord}
                   onChange={updateChord(index)}
+                  onClear={removeChord(index)}
                   additionalInputProps={inputProps}
                 />
               </TimelineItem>
             )
           })
         }
+        {/* a "new item" that is saved to state when edited */}
+        <TimelineItem
+          item={{ durationBeats: timeSignature.perMeasure }}
+          positionBeats={positions[positions.length - 1]}
+          timeSignature={timeSignature}
+        >
+          <Kbd opacity={0} colorScheme="gray" fontSize="sm" pt={1} />
+          <ChordInput
+            value={null}
+            onChange={addChord}
+            additionalInputProps={inputProps}
+          />
+        </TimelineItem>
       </Box>
     </Box>
   )

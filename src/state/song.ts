@@ -38,9 +38,12 @@ export type SongContext = {
  */
 export type SongRhythm = Map<InstrumentName, Rhythm | null>
 
-export type SectionItem = {
-  chord: string | null,
+export type BaseTimelineItem = {
   durationBeats: number,
+}
+
+export type SectionItem = BaseTimelineItem & {
+  chord: string | null,
 }
 
 export type SongSection = {
