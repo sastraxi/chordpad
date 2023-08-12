@@ -10,6 +10,10 @@ const SongMetaEditor = () => {
   const [scratchTitle, setScratchTitle] = useState<string | undefined>(undefined)
   const [scratchAuthor, setScratchAuthor] = useState<string | undefined>(undefined)
 
+  const onSubmit = (newTitle: string) => {
+    if (newTitle) setTitle(newTitle)
+    setScratchTitle(undefined)
+  }
 
   return (
     <HStack>
@@ -17,12 +21,12 @@ const SongMetaEditor = () => {
         isPreviewFocusable={true}
         value={scratchTitle ?? title}
         onChange={setScratchTitle}
-        onSubmit={title => { setTitle(title); setScratchTitle(undefined) }}
+        onSubmit={onSubmit}
         submitOnBlur={true}
         fontSize="3xl"
         minW={60}
       >
-        <EditablePreview />
+        <EditablePreview mr={4} />
         <EditableInput />
       </Editable>
       <SongContextEditor context={context} mutators={mutators} buttonProps={{ size: "md" }} />

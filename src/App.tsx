@@ -1,13 +1,12 @@
 import { Box, Button, HStack } from '@chakra-ui/react'
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
 
-import './App.css'
 import { useSongSections } from './state/song'
 import SectionEditor from './editor/SectionEditor'
 import SongMetaEditor from './editor/SongMetaEditor'
 
-
-import { DndProvider } from 'react-dnd'
-import { HTML5Backend } from 'react-dnd-html5-backend'
+import './App.css'
 
 const App = () => {
   const { sections, addSection } = useSongSections()

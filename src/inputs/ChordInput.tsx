@@ -2,16 +2,13 @@ import { Box, Editable, EditableInput, EditablePreview, Flex, Input, ListItem, U
 import { UseComboboxGetInputPropsOptions, useCombobox } from 'downshift'
 import { useState } from 'react'
 
-import { ALL_GUITAR_CHORDS, combineChord } from 'noteynotes/theory/guitar'
+import { ALL_CHORD_NAMES } from 'noteynotes/theory/chords'
 
 type PropTypes = {
   value: string | null,
   onChange: (chosenChord: string | null) => void
   additionalInputProps?: UseComboboxGetInputPropsOptions
 }
-
-// FIXME: enharmonics are missing; "Dm" vs "D minor"; piano chords should be source-of-truth
-const ALL_CHORDS = ALL_GUITAR_CHORDS.map(combineChord)
 
 const getChordsFilter = (userInput?: string) => {
   const lower = userInput?.toLowerCase()
@@ -23,7 +20,7 @@ const ChordInput = ({
   onChange,
   additionalInputProps = {},
 }: PropTypes) => {
-  const [chords, setChords] = useState(ALL_CHORDS)
+  const [chords, setChords] = useState<string[]>([])
   const [scratchValue, setScratchValue] = useState(value)
   const {
     isOpen,
@@ -33,7 +30,8 @@ const ChordInput = ({
     getMenuProps,
   } = useCombobox({
     onInputValueChange({ inputValue }) {
-      setChords(ALL_CHORDS.filter(getChordsFilter(inputValue)))
+      if (!inputValue || inputValue.length < 1) setChords([])
+      setChords(ALL_CHORD_NAMES.filter(getChordsFilter(inputValue)))
     },
     items: chords,
     itemToString: item => item ?? '',
@@ -65,7 +63,7 @@ const ChordInput = ({
         p={0}
       >
         <EditablePreview
-          color={value ? "black" : "gray.400"}
+          color={scratchValue ? "black" : "gray.400"}
         />
         <Input
           {...getInputProps(additionalInputProps)}

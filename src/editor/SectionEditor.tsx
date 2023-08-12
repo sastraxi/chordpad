@@ -53,9 +53,7 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
           if (!node) break
         }
 
-        if (!node) return false
-
-        console.log(node);
+        if (!node) return false;
 
         // go back down to the actual input
         (node.querySelector(".chakra-editable__preview") as HTMLSpanElement).focus()
@@ -122,6 +120,14 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
       <Box ref={chordsContainer} maxWidth="1200px" onDragOver={(e) => { e.preventDefault(); return false; }}>
         {
           section.items.map((item, index) => {
+            let romanNumeral: string | undefined = undefined
+            try {
+              if (item.chord) {
+                romanNumeral = getRomanNumeral(key, item.chord)
+              }
+            } catch (e) {
+              console.error('invalid chord', item.chord)
+            }
             return (
               <TimelineItem
                 key={index}
@@ -130,7 +136,7 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
                 timeSignature={timeSignature}
               >
                 <Kbd opacity={item.chord ? 1 : 0} colorScheme="gray" fontSize="sm" pt={1}>
-                  {item.chord && getRomanNumeral(key, item.chord)}
+                  {romanNumeral}
                 </Kbd>
                 <ChordInput
                   key={index}
