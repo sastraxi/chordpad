@@ -3,7 +3,7 @@ import ChordInput from '../inputs/ChordInput'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import TimelineItem from './TimelineItem'
 import { UseComboboxGetInputPropsOptions } from 'downshift'
-import { useDefaultSongContext, useSection } from '../state/song'
+import { SectionItem, useDefaultSongContext, useSection } from '../state/song'
 import { remove, update } from '../util'
 import SongContextEditor from './SongContextEditor'
 
@@ -99,6 +99,10 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
     }, [])
   }, [section.items])
 
+  const endPosition = section.items.length > 0
+    ? positions[positions.length - 1] + section.items[section.items.length - 1].durationBeats
+    : 0
+
   return (
     <Box>
       <HStack py={2}>
@@ -131,11 +135,11 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
               <TimelineItem
                 key={index}
                 item={item}
-                updateItem={(updates) => update(section.items, index, updates)}
+                updateItem={(updates) => setItems(update<SectionItem>(section.items, index, updates))}
                 positionBeats={positions[index]}
                 timeSignature={timeSignature}
               >
-                <Kbd opacity={item.chord ? 1 : 0} colorScheme="gray" fontSize="sm" pt={1}>
+                <Kbd userSelect="none" opacity={item.chord ? 1 : 0} colorScheme="gray" fontSize="sm" pt={1}>
                   {romanNumeral}
                 </Kbd>
                 <ChordInput
@@ -149,10 +153,10 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
             )
           })
         }
-        {/* a "new item" that is saved to state when edited */}
+        {/* a "new item" that is saved as a new SectionItem when successfully edited */}
         <TimelineItem
           item={{ durationBeats: timeSignature.perMeasure }}
-          positionBeats={positions[positions.length - 1]}
+          positionBeats={endPosition}
           timeSignature={timeSignature}
         >
           <Kbd opacity={0} colorScheme="gray" fontSize="sm" pt={1} />

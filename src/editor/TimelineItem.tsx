@@ -94,7 +94,7 @@ const TimelineItem = ({
   ////////////////////////////////////////////////////////
 
   return (
-    <Box ref={container} w={`${width}px`} h={`${lineHeight}px`} position="relative" display="inline-block">
+    <Box ref={container} w={`${width}px`} h={`${lineHeight}px`} position="relative" display="inline-block" cursor="pointer">
       {updateItem &&
         <Box
           position="absolute"
@@ -115,7 +115,7 @@ const TimelineItem = ({
       <Box position="absolute" left="10px" top="5px">
         {children}
       </Box>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 ${width} 100`}>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 ${width} 100`} style={{ userSelect: "none" }}>
         <g fill="#5f5f5f">
           {
             range(scratchDuration * subdivisions).map((n) => {
