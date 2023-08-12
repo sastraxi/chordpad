@@ -3,6 +3,7 @@ import {
   SliderFilledTrack, SliderThumb, SliderTrack
 } from "@chakra-ui/react"
 import { useState } from "react"
+import { bpmToMsec, msecToBpm } from "../util"
 
 type PropTypes = {
   value: number
@@ -27,9 +28,6 @@ const TAP_MEMORY_MIN = 3
  * waits this long between tap.
  */
 const DEFAULT_TAP_ABORT_MS = 2500
-
-const msecToBpm = (durationMs: number) => (1000 / durationMs) * 60
-const bpmToMsec = (bpm: number) => (1000 / (bpm / 60))
 
 const constrain = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(max, value))

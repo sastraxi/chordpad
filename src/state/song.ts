@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { ItemIndex, TimeSignature } from '../types'
-import { replace, update } from '../util'
+import { bpmToMsec, replace, sum, update } from '../util'
 
 export type Rhythm = {
   /**
@@ -237,5 +237,36 @@ export const useSectionItem = ({ section: sectionIndex, item: itemIndex }: ItemI
   return {
     item: sectionItems[itemIndex],
     updateItem,
+  }
+}
+
+type SongPlaybackSection = {
+  name: string
+  totalLengthMs: number
+  subdivisionsMs: Array<number>
+}
+
+type SongPlaybackInfo = {
+  sections: Array<SongPlaybackSection>
+}
+
+export const useSongPlaybackInfo = (): SongPlaybackInfo => {
+  const defaultContext = useDefaultSongContext()
+  const sections = useSongState(state => state.sections)
+
+  const playbackSections = sections.map((section, index): SongPlaybackSection => {
+    const bpm = section.contextOverrides.bpm ?? defaultContext.bpm
+    const lengths = section.items.map((item) => bpmToMsec(bpm) * item.durationBeats)
+    return {
+      name: section.title ?? `Section ${index + 1}`,
+      totalLengthMs: sum(lengths),
+      subdivisionsMs: lengths,
+    }
+  }).filter(
+    section => section.totalLengthMs > 0
+  )
+
+  return {
+    sections: playbackSections
   }
 }
