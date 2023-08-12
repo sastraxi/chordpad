@@ -1,5 +1,5 @@
 import { ArrowRightIcon, ChevronLeftIcon, ChevronRightIcon, RepeatClockIcon } from "@chakra-ui/icons"
-import { Box, Colors, HStack, IconButton, Slider, SliderFilledTrack, SliderThumb, SliderTrack, VStack, useDimensions } from "@chakra-ui/react"
+import { Box, Button, HStack, IconButton, Slider, SliderFilledTrack, SliderThumb, SliderTrack, VStack, useDimensions } from "@chakra-ui/react"
 
 import { BOTTOM_BAR_HEIGHT } from "./constants"
 import { SongPlaybackSection, useSongPlaybackInfo } from "../state/song"
@@ -73,32 +73,35 @@ const PlaybackBar = () => {
 
 
   const elementRef = useRef<HTMLDivElement | null>(null)
-  const dimensions = useDimensions(elementRef)
+  const dimensions = useDimensions(elementRef, true)
   return (
     <HStack bg="blue.800" h={BOTTOM_BAR_HEIGHT} boxSizing="border-box" px={6} boxShadow="0px 0px 12px rgba(0, 0, 0, 0.2)">
       <IconButton
+        isDisabled
         colorScheme='blue'
         aria-label='Undo'
         icon={<ChevronLeftIcon />}
       />
       <IconButton
-        colorScheme='blue'
         isDisabled
+        colorScheme='blue'
         aria-label='Redo'
         icon={<ChevronRightIcon />}
       />
       <Box w={4} />
       <IconButton
+        isDisabled
         colorScheme='blue'
         aria-label='Play / Pause'
         icon={<ArrowRightIcon />}
       />
       <IconButton
+        isDisabled
         colorScheme='blue'
         aria-label='Undo'
         icon={<RepeatClockIcon />}
       />
-      <VStack w="full" marginLeft={4}>
+      <VStack w="full" mx={4}>
         <Slider aria-label='slider-ex-4' min={0} max={50000} step={1}>
           <SliderTrack bg='red.100'>
             <SliderFilledTrack bg='tomato' />
@@ -117,6 +120,9 @@ const PlaybackBar = () => {
           />}
         </Box>
       </VStack>
+      <Button isDisabled>
+        ...
+      </Button>
     </HStack>
   )
 
