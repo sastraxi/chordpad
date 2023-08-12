@@ -65,13 +65,11 @@ const TimelineItem = ({
 
   const onDrag: React.DragEventHandler<HTMLDivElement> = (e) => {
     e.stopPropagation()
-    console.log(e.clientX, e.clientY)
 
     const offset = getDragOffset({ x: e.clientX, y: e.clientY })
     const dy = Math.floor(offset.y / lineHeight)
     const dx = Math.floor(0.5 + offset.x / beatWidth)
     const delta = constrain(dy * beatsPerLine + dx, minDelta, maxDelta)
-    // console.log('offset', offset, item.durationBeats + delta)
 
     const durationBeats = item.durationBeats + delta
     setScratchDuration(durationBeats)
@@ -82,13 +80,10 @@ const TimelineItem = ({
   const onDragEnd: React.DragEventHandler<HTMLDivElement> = (e) => {
     e.stopPropagation()
 
-    console.log(e.clientX, e.clientY)
-
     const offset = getDragOffset({ x: e.clientX, y: e.clientY })
     const dy = Math.floor(offset.y / lineHeight)
     const dx = Math.floor(0.5 + offset.x / beatWidth)
     const delta = constrain(dy * beatsPerLine + dx, minDelta, maxDelta)
-    // console.log('offset', offset, item.durationBeats + delta)
 
     const durationBeats = item.durationBeats + delta
     setScratchDuration(durationBeats)
@@ -99,8 +94,6 @@ const TimelineItem = ({
   }
 
   ////////////////////////////////////////////////////////
-
-  console.log('sd', scratchDuration)
 
   const viewBox = `0 0 ${width} 100`
 
