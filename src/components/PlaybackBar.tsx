@@ -1,15 +1,60 @@
 import { ArrowRightIcon, ChevronLeftIcon, ChevronRightIcon, RepeatClockIcon } from "@chakra-ui/icons"
-import { Box, Colors, HStack, IconButton, Slider, SliderFilledTrack, SliderThumb, SliderTrack, VStack } from "@chakra-ui/react"
+import { Box, Colors, HStack, IconButton, Slider, SliderFilledTrack, SliderThumb, SliderTrack, VStack, useDimensions } from "@chakra-ui/react"
 
 import { BOTTOM_BAR_HEIGHT } from "./constants"
-import { useSongPlaybackInfo } from "../state/song"
+import { SongPlaybackSection, useSongPlaybackInfo } from "../state/song"
 import { sum } from "../util"
-import { useMemo } from "react"
+import { useMemo, useRef } from "react"
 
-const SECTION_COLOURS: string = [
+const SECTION_COLOURS: Array<string> = [
   "yellow",
   "orange",
 ]
+
+const MiniMap = ({
+  width,
+  height,
+  totalTimeMs,
+  positions,
+  sections,
+}: {
+  width: number
+  height: number
+  totalTimeMs: number
+  positions: Array<number>
+  sections: Array<SongPlaybackSection>
+}) => {
+  const scaleFactor = width / totalTimeMs
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="100%"
+      height="100%"
+      viewBox={`0 0 ${width} ${height}`}
+      style={{ userSelect: "none" }}
+    >
+      {
+        sections.map((section, i) => {
+          const x = positions[i] * scaleFactor
+          return (
+            <g key={`section-${i}`}>
+              <rect
+                x={x}
+                y="0"
+                width={section.totalLengthMs}
+                height={height}
+                fill={SECTION_COLOURS[i % SECTION_COLOURS.length]}
+              />
+              <text x={x + 2} y="12" fontSize="11px">
+                {section.name}
+              </text>
+            </g>
+          )
+        })
+      }
+    </svg>
+  )
+}
 
 const PlaybackBar = () => {
   const playbackInfo = useSongPlaybackInfo()
@@ -26,6 +71,9 @@ const PlaybackBar = () => {
     }, [])
   }, [playbackInfo.sections])
 
+
+  const elementRef = useRef<HTMLDivElement | null>(null)
+  const dimensions = useDimensions(elementRef)
   return (
     <HStack bg="blue.800" h={BOTTOM_BAR_HEIGHT} boxSizing="border-box" px={6} boxShadow="0px 0px 12px rgba(0, 0, 0, 0.2)">
       <IconButton
@@ -59,25 +107,14 @@ const PlaybackBar = () => {
             <Box />
           </SliderThumb>
         </Slider>
-        <Box w="full" h={4}>
-          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 ${totalTimeMs} 100`} style={{ userSelect: "none" }}>
-            {
-              playbackInfo.sections.map((section, i) => (
-                <g key={`section-${i}`}>
-                  <rect
-                    x={positions[i]}
-                    y="0"
-                    width={section.totalLengthMs}
-                    height={100}
-                    fill={SECTION_COLOURS[i % SECTION_COLOURS.length]}
-                  />
-                  <text x={positions[i]} y="30" fontSize="11px">
-                    {section.title}
-                  </text>
-                </g>
-              ))
-            }
-          </svg>
+        <Box w="full" h={4} ref={elementRef}>
+          {dimensions && <MiniMap
+            width={dimensions.contentBox.width}
+            height={dimensions.contentBox.height}
+            positions={positions}
+            totalTimeMs={totalTimeMs}
+            sections={playbackInfo.sections}
+          />}
         </Box>
       </VStack>
     </HStack>

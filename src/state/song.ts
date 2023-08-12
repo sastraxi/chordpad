@@ -240,7 +240,7 @@ export const useSectionItem = ({ section: sectionIndex, item: itemIndex }: ItemI
   }
 }
 
-type SongPlaybackSection = {
+export type SongPlaybackSection = {
   name: string
   totalLengthMs: number
   subdivisionsMs: Array<number>
