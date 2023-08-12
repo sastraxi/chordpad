@@ -6,8 +6,6 @@ import { useSelection } from "../state/selection"
 import { useGlobalScale } from "../state/global-scale"
 import { useSectionItem } from "../state/song"
 
-import { useThrottleCallback, useThrottle } from "@react-hook/throttle"
-
 const constrain = (val: number, min: number, max: number) =>
   Math.max(min, Math.min(max, val))
 
@@ -118,9 +116,10 @@ const TimelineItem = ({
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
         onDrag={onDrag}
-        backgroundColor="red"
+        backgroundColor="transparent"
         opacity="0.3"
         zIndex="99"
+        draggable="true"
       />
       <Box position="absolute" left="10px" top="5px">
         {children}
