@@ -142,10 +142,7 @@ export const useSongState = create<SongStateAndMutators>()(
         sections: [...state.sections, {
           contextOverrides: {},
           rhythmOverrides: new Map(),
-          items: [{
-            chord: null,
-            durationBeats: 4,
-          }],
+          items: [],
         }]
       }))
 
