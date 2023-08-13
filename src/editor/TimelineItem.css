@@ -1,0 +1,8 @@
+
+.dragHandle {
+  opacity: 0
+}
+
+.timelineItem:hover .dragHandle {
+  opacity: 1.0
+}

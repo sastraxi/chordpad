@@ -6,6 +6,8 @@ import { useSelection } from "../state/selection"
 import { useGlobalScale } from "../state/global-scale"
 import { BaseTimelineItem } from "../state/song"
 
+import './TimelineItem.css'
+
 const constrain = (val: number, min: number, max: number) =>
   Math.max(min, Math.min(max, val))
 
@@ -94,24 +96,46 @@ const TimelineItem = ({
   ////////////////////////////////////////////////////////
 
   return (
-    <Box ref={container} w={`${width}px`} h={`${lineHeight}px`} position="relative" display="inline-block" cursor="pointer">
+    <Box
+      className="timelineItem"
+      ref={container}
+      w={`${width}px`}
+      h={`${lineHeight}px`}
+      position="relative"
+      display="inline-block"
+      cursor="pointer"
+    >
       {updateItem &&
-        <Box
-          position="absolute"
-          right="-6px"
-          top="0"
-          height="100%"
-          width="10px"
-          cursor="col-resize"
-          backgroundColor="transparent"
-          opacity="0.3"
-          zIndex="99"
-          draggable="true"
-          onDragStart={onDragStart}
-          onDragEnd={onDragEnd}
-          onDrag={onDrag}
-        />
+        <>
+          <Box
+            position="absolute"
+            right="-6px"
+            top="0"
+            height="100%"
+            width="10px"
+            cursor="col-resize"
+            backgroundColor="transparent"
+            opacity="0.3"
+            zIndex="99"
+            draggable="true"
+            onDragStart={onDragStart}
+            onDragEnd={onDragEnd}
+            onDrag={onDrag}
+          />
+          <Box
+            zIndex={99}
+            className="dragHandle"
+            position="absolute"
+            right="-3px"
+            top="0"
+            height="100%"
+            width="2px"
+            backgroundColor="blue.400"
+            boxShadow="0px 0px 3px rgba(15, 25, 150, 0.6)"
+          />
+        </>
       }
+
       <Box position="absolute" left="10px" top="5px">
         {children}
       </Box>
