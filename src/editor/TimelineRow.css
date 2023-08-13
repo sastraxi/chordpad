@@ -1,0 +1,10 @@
+@keyframes ava {
+  0% { transform: translateX(var(--timeline-playback-start)) }
+  100% { transform: translateX(var(--timeline-playback-end)) }
+}
+
+.play-cursor {
+  animation: ava var(--timeline-playback-duration) linear forwards;
+  display: var(--timeline-playback-display);
+}
+

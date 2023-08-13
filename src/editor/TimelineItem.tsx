@@ -31,12 +31,12 @@ const TimelineItem = ({
   children,
   subdivisions = 4,
 }: PropTypes) => {
-  const { beatWidth, measuresPerLine, lineHeight } = useGlobalScale()
+  const { quarterWidth, measuresPerLine, lineHeight } = useGlobalScale()
 
   const [dragAnchor, setDragAnchor] = useState<Coordinate | undefined>(undefined)
   const [scratchDuration, setScratchDuration] = useState(item.durationBeats)
 
-  const width = beatWidth * scratchDuration
+  const width = quarterWidth * scratchDuration
   const beatsPerMeasure = (timeSignature.noteValue / 4) * timeSignature.perMeasure
   const beatsPerLine = beatsPerMeasure * measuresPerLine
 
@@ -66,7 +66,7 @@ const TimelineItem = ({
 
     const offset = getDragOffset({ x: e.clientX, y: e.clientY })
     const dy = Math.floor(offset.y / lineHeight)
-    const dx = Math.floor(0.5 + offset.x / beatWidth)
+    const dx = Math.floor(0.5 + offset.x / quarterWidth)
     const delta = constrain(dy * beatsPerLine + dx, minDelta, maxDelta)
 
     const durationBeats = item.durationBeats + delta
@@ -80,7 +80,7 @@ const TimelineItem = ({
 
     const offset = getDragOffset({ x: e.clientX, y: e.clientY })
     const dy = Math.floor(offset.y / lineHeight)
-    const dx = Math.floor(0.5 + offset.x / beatWidth)
+    const dx = Math.floor(0.5 + offset.x / quarterWidth)
     const delta = constrain(dy * beatsPerLine + dx, minDelta, maxDelta)
 
     const durationBeats = item.durationBeats + delta
@@ -127,9 +127,9 @@ const TimelineItem = ({
                 // start of this item
                 return (
                   <g key="item-start">
-                    <rect x={position * beatWidth} y="0" width="3" height="100" />
+                    <rect x={position * quarterWidth} y="0" width="3" height="100" />
                     {isStartOfBar &&
-                      <text x={position * beatWidth + 12} y="86" fontSize="11px">
+                      <text x={position * quarterWidth + 12} y="86" fontSize="11px">
                         {globalPosition / timeSignature.perMeasure}
                       </text>}
                   </g>
@@ -140,13 +140,13 @@ const TimelineItem = ({
                 return (
                   <g key={`bar-${n}`}>
                     <path
-                      d={`M${position * beatWidth} 100 l0 -100`}
+                      d={`M${position * quarterWidth} 100 l0 -100`}
                       stroke="black"
                       strokeWidth="2"
                       strokeDasharray="2,2"
                       opacity="0.4"
                     />
-                    <text x={position * beatWidth + 12} y="86" fontSize="11px">
+                    <text x={position * quarterWidth + 12} y="86" fontSize="11px">
                       {globalPosition / timeSignature.perMeasure}
                     </text>
                   </g>
@@ -155,13 +155,13 @@ const TimelineItem = ({
               } else if (position % 1 === 0) {
                 // big ticks
                 return (
-                  <rect key={`tick-${n}`} x={position * beatWidth} y="92" width="1.5" height="8" opacity="0.7" />
+                  <rect key={`tick-${n}`} x={position * quarterWidth} y="92" width="1.5" height="8" opacity="0.7" />
                 )
 
               } else {
                 // small ticks
                 return (
-                  <rect key={`tick-${n}`} x={position * beatWidth} y="97" width="1.5" height="3" opacity="0.3" />
+                  <rect key={`tick-${n}`} x={position * quarterWidth} y="97" width="1.5" height="3" opacity="0.3" />
                 )
               }
             })
