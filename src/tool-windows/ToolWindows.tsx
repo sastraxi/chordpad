@@ -1,5 +1,5 @@
 import { ViewOffIcon } from "@chakra-ui/icons"
-import { Button, Card, CardBody, CardHeader, Divider, HStack, IconButton, Kbd, Spacer, Table, TableContainer, Tbody, Td, Text, Th, Thead, Tr, VStack } from "@chakra-ui/react"
+import { Button, Card, CardBody, CardHeader, Divider, HStack, IconButton, Kbd, Link, Spacer, Table, TableContainer, Tbody, Td, Text, Th, Thead, Tr, VStack } from "@chakra-ui/react"
 
 const ToolWindows = () => {
   return (
@@ -35,29 +35,34 @@ const ToolWindows = () => {
               />
             </HStack>
             <TableContainer w="100%">
-              <Table size="xs" fontSize="14px">
+              <Table size="sm">
                 <Thead>
                   <Tr>
+                    <Th px={0} w={0} />
                     <Th color="white">Song name</Th>
-                    <Th color="white" isNumeric>Saved at</Th>
+                    <Th color="white" isNumeric>Last modified</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
                   <Tr>
-                    <Td>My song</Td>
+                    <Td px={0}><Button size="xs">x</Button></Td>
+                    <Td><Link href="#">My song</Link></Td>
                     <Td isNumeric>just now</Td>
                   </Tr>
                   <Tr>
-                    <Td>abc</Td>
+                    <Td px={0}><Button size="xs">x</Button></Td>
+                    <Td><Link href="#">Silly Child</Link></Td>
                     <Td isNumeric>yesterday</Td>
                   </Tr>
                   <Tr>
-                    <Td>def</Td>
+                    <Td px={0}><Button size="xs">x</Button></Td>
+                    <Td><Link href="#">The Reckoning</Link></Td>
                     <Td isNumeric>2 weeks ago</Td>
                   </Tr>
                   <Tr>
-                    <Td>ghi</Td>
-                    <Td isNumeric>May 21, 2023</Td>
+                    <Td px={0}><Button size="xs">x</Button></Td>
+                    <Td><Link href="#">Release Me</Link></Td>
+                    <Td isNumeric>May 21, 2013</Td>
                   </Tr>
                 </Tbody>
               </Table>
