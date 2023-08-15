@@ -124,7 +124,7 @@ const PlaybackBar = () => {
       </VStack>
       <Button onClick={onOpen}>...</Button>
 
-      <Modal closeOnOverlayClick={false} isOpen={isOpen} onClose={onClose} size="3xl" preserveScrollBarGap>
+      <Modal closeOnOverlayClick={false} isOpen={isOpen} onClose={onClose} size="4xl" preserveScrollBarGap>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Instruments</ModalHeader>

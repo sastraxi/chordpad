@@ -1,9 +1,10 @@
 import { ViewOffIcon } from "@chakra-ui/icons"
 import { Button, Card, CardBody, HStack, IconButton, Kbd, Link, Spacer, Table, TableContainer, Tbody, Td, Text, Th, Thead, Tr, VStack } from "@chakra-ui/react"
+import { TOOL_WINDOW_WIDTH } from "../components/constants"
 
 const ToolWindows = () => {
   return (
-    <VStack p={6} width="460px">
+    <VStack p={6} width={TOOL_WINDOW_WIDTH} position="fixed" top={0} right={0}>
 
       <Card background="red.800" color="white" w="100%" boxShadow="xl">
         <CardBody>

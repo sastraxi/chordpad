@@ -44,12 +44,12 @@ const InstrumentsEditor = ({
   const bottomRow = { pt: 0, pb: 4 }
 
   return (
-    <Table size="sm">
+    <Table size="sm" w="100%">
       <Tr>
         <Th></Th>
         <Th>volume</Th>
         <Th>legato</Th>
-        <Th>strum & tuning</Th>
+        <Th>strum + timing</Th>
       </Tr>
 
       {instruments.map(({ name, pulses, pulseResolution }) => {
@@ -58,7 +58,7 @@ const InstrumentsEditor = ({
           <>
             {/* main row */}
             <Tr>
-              <Td {...topRow}>
+              <Td {...topRow} w="100%">
                 <HStack>
                   <ButtonGroup size="xs" isAttached>
                     <IconButton
@@ -72,7 +72,7 @@ const InstrumentsEditor = ({
                       icon={<QuestionIcon />}
                     />
                   </ButtonGroup>
-                  <Text fontSize="lg">
+                  <Text fontSize="xl" lineHeight={1.2} ml={2}>
                     {name}
                   </Text>
                 </HStack>
@@ -83,6 +83,7 @@ const InstrumentsEditor = ({
                   min={0}
                   max={100}
                   colorScheme="blackAlpha"
+                  w={24}
                 >
                   <SliderTrack bg="red.100">
                     <SliderFilledTrack bg='tomato' />
@@ -98,6 +99,7 @@ const InstrumentsEditor = ({
                   min={0}
                   max={100}
                   colorScheme="blackAlpha"
+                  w={24}
                 >
                   <SliderTrack bg="blue.100">
                     <SliderFilledTrack bg='LightSkyBlue' />
@@ -127,7 +129,7 @@ const InstrumentsEditor = ({
                     min={0}
                     max={100}
                     colorScheme="blackAlpha"
-                    w={16}
+                    w={24}
                   >
                     <SliderTrack bg="blue.100">
                       <SliderFilledTrack bg='LightSkyBlue' />
@@ -145,7 +147,6 @@ const InstrumentsEditor = ({
               <Td {...bottomRow}>
                 <HStack pl={4}>
                   <Text verticalAlign="top" mt={-2} fontSize="30px" color="blackAlpha.600">⦦</Text>
-                  <Text textTransform="uppercase" fontSize="sm" color="blackAlpha.800">rhy.</Text>
                   <ButtonGroup size="xs" isAttached>
                     <IconButton
                       colorScheme='red'
@@ -158,13 +159,14 @@ const InstrumentsEditor = ({
                       icon={<EditIcon />}
                     />
                   </ButtonGroup>
+                  <Text textTransform="uppercase" fontSize="xs" color="blackAlpha.500">rhythm</Text>
                 </HStack>
               </Td>
               <Td {...bottomRow} colSpan={3}>
                 <HStack>
                   <IconButton
                     size="xs"
-                    mr={2}
+                    mr={4}
                     isRound
                     colorScheme="gray"
                     aria-label='Redo'
@@ -212,8 +214,7 @@ const InstrumentsEditor = ({
           <HStack>
             <Button colorScheme="blue">Add new instrument</Button>
             <Spacer />
-            <Button onClick={onClose} colorScheme="blue">Save</Button>
-            <Button onClick={onClose}>Revert</Button>
+            <Button onClick={onClose}>Close</Button>
           </HStack>
         </Td>
       </Tr>
