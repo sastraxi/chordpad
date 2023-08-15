@@ -1,5 +1,5 @@
 import { ViewOffIcon } from "@chakra-ui/icons"
-import { Button, Card, CardBody, CardHeader, Divider, HStack, IconButton, Kbd, Link, Spacer, Table, TableContainer, Tbody, Td, Text, Th, Thead, Tr, VStack } from "@chakra-ui/react"
+import { Button, Card, CardBody, HStack, IconButton, Kbd, Link, Spacer, Table, TableContainer, Tbody, Td, Text, Th, Thead, Tr, VStack } from "@chakra-ui/react"
 
 const ToolWindows = () => {
   return (
@@ -29,7 +29,7 @@ const ToolWindows = () => {
               <Spacer />
               <IconButton
                 size="xs"
-                colorScheme='blue'
+                colorScheme='white'
                 aria-label='Show / hide'
                 icon={<ViewOffIcon />}
               />

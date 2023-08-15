@@ -5,6 +5,7 @@
 
 .play-cursor {
   animation: ava var(--timeline-playback-duration) linear forwards;
+  animation-delay: var(--timeline-playback-delay);
   display: var(--timeline-playback-display);
 }
 

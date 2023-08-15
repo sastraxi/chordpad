@@ -1,10 +1,11 @@
 import { ArrowRightIcon, ChevronLeftIcon, ChevronRightIcon, RepeatClockIcon } from "@chakra-ui/icons"
-import { Box, Button, HStack, IconButton, Slider, SliderFilledTrack, SliderThumb, SliderTrack, VStack, useDimensions } from "@chakra-ui/react"
+import { Box, Button, HStack, IconButton, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Slider, SliderFilledTrack, SliderThumb, SliderTrack, VStack, useDimensions, useDisclosure } from "@chakra-ui/react"
 
-import { BOTTOM_BAR_HEIGHT } from "./constants"
+import { useMemo, useRef } from "react"
 import { SongPlaybackSection, useSongPlaybackInfo } from "../state/song"
 import { sum } from "../util"
-import { useMemo, useRef } from "react"
+import { BOTTOM_BAR_HEIGHT } from "./constants"
+import InstrumentsEditor from "../editor/InstrumentsEditor"
 
 const SECTION_COLOURS: Array<string> = [
   "yellow",
@@ -72,6 +73,7 @@ const PlaybackBar = () => {
   }, [playbackInfo.sections])
 
 
+  const { isOpen, onOpen, onClose } = useDisclosure()
   const elementRef = useRef<HTMLDivElement | null>(null)
   const dimensions = useDimensions(elementRef, true)
   return (
@@ -120,10 +122,19 @@ const PlaybackBar = () => {
           />}
         </Box>
       </VStack>
-      <Button isDisabled>
-        ...
-      </Button>
-    </HStack>
+      <Button onClick={onOpen}>...</Button>
+
+      <Modal closeOnOverlayClick={false} isOpen={isOpen} onClose={onClose} size="3xl" preserveScrollBarGap>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Instruments</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody overflow="hidden">
+            <InstrumentsEditor onClose={onClose} />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+    </HStack >
   )
 
 }

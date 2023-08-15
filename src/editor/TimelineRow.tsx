@@ -14,6 +14,8 @@ const TimelineRow = ({
   timeSignature,
   lineHeight,
   quarterWidth,
+  rulerOpacity = 1.0,
+  rulerText = true,
 }: {
   startAt: number,
   length: number,
@@ -23,6 +25,8 @@ const TimelineRow = ({
   timeSignature: TimeSignature
   lineHeight?: number
   quarterWidth?: number
+  rulerOpacity?: number
+  rulerText?: boolean
 }) => {
 
   const globalScale = useGlobalScale()
@@ -38,11 +42,11 @@ const TimelineRow = ({
   // each bar that is being rendered as well as the duration and
   // start / end (end will probably always be 100%).
   const style = {
-    "--timeline-playback-start": "80%",
+    "--timeline-playback-start": "0",
     "--timeline-playback-end": "100%",
-    "--timeline-playback-duration": "1.5s",
+    "--timeline-playback-duration": "3.5s",
     "--timeline-playback-display": "initial",
-    "--timeline-playback-delay": "",
+    "--timeline-playback-delay": "2s",
   } as React.CSSProperties;
 
   return (
@@ -61,7 +65,7 @@ const TimelineRow = ({
         <g fill="red">
           <rect className="play-cursor" x={0} y={0} width={2.5} opacity="0.6" height={renderHeight} />
         </g>
-        <g fill="#5f5f5f">
+        <g fill="#5f5f5f" opacity={rulerOpacity}>
           {
             range(length * subdivisions).map((n) => {
               const position = n / subdivisions
@@ -79,9 +83,11 @@ const TimelineRow = ({
                       strokeDasharray="2,2"
                       opacity="0.4"
                     />
-                    <text x={position * renderWidth + 12} y={renderHeight - 14} fontSize="11px">
-                      {globalPosition / timeSignature.perMeasure}
-                    </text>
+                    {rulerText &&
+                      <text x={position * renderWidth + 12} y={renderHeight - 14} fontSize="11px">
+                        {globalPosition / timeSignature.perMeasure}
+                      </text>
+                    }
                   </g>
                 )
 
