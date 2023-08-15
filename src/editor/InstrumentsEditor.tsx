@@ -131,22 +131,22 @@ const InstrumentsEditor = ({
                 <HStack>
                   <Checkbox isChecked={strum !== null} />
                   {!strum && (
-                    <Text>--</Text>
+                    <Text></Text>
                   )}
                   {strum && (
                     <>
+                      <IconButton
+                        size="xs"
+                        colorScheme="gray"
+                        aria-label='Strum type'
+                        title='Strum type'
+                        icon={<TimeIcon />}
+                      />
                       <Select value={strum?.pattern} size="xs" w={24}>
                         <option value='123456'>123456</option>
                         <option value='123436'>123436</option>
                         <option value='1234'>1234</option>
                       </Select>
-                      <IconButton
-                        size="xs"
-                        colorScheme="gray"
-                        aria-label='Change'
-                        title='Change '
-                        icon={<TimeIcon />}
-                      />
                       <Slider
                         value={80}
                         min={0}
