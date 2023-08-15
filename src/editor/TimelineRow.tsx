@@ -41,10 +41,11 @@ const TimelineRow = ({
   // when we finally render, we'll calculate animatiqon delays for
   // each bar that is being rendered as well as the duration and
   // start / end (end will probably always be 100%).
+
   const style = {
     "--timeline-playback-start": "0",
     "--timeline-playback-end": "100%",
-    "--timeline-playback-duration": "3.5s",
+    "--timeline-playback-duration": `calc(${rowLength} * 2s)`,
     "--timeline-playback-display": "initial",
     "--timeline-playback-delay": "2s",
   } as React.CSSProperties;
