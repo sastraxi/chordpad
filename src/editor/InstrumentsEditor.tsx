@@ -208,7 +208,7 @@ const InstrumentsEditor = ({
       }
 
       <Tr>
-        <Td colSpan={4} px={2} py={4}>
+        <Td colSpan={4} px={2} py={4} border="none">
           <HStack>
             <Button colorScheme="blue">Add new instrument</Button>
             <Spacer />
