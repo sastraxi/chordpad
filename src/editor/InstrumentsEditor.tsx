@@ -4,10 +4,22 @@ import { useState } from "react"
 import TimelineRow from "./TimelineRow"
 import Pulse from "../images/Pulse"
 
+type StrumMode =
+  | 'time'        // e.g. 15ms for a nice strum
+  | 'note value'  // e.g. quarter notes apart
+  | 'pattern'     // each pulse advances through the pattern
+
+type StrumDefinition = {
+  pattern: string
+  mode: StrumMode
+  value: number
+}
+
 type Instrument = {
   name: string
   pulses: number[]
   pulseResolution: number
+  strum: StrumDefinition | null
 }
 
 const QUARTER_WIDTH = 40
@@ -32,11 +44,17 @@ const InstrumentsEditor = ({
       name: "Acoustic",
       pulses: [0.5, 0, 0, 0],
       pulseResolution: 4,
+      strum: {
+        pattern: '1234',
+        mode: 'time',
+        value: 256
+      }
     },
     {
-      name: "Electric Guitar",
+      name: "Electric Bass",
       pulses: PULSES,
       pulseResolution: PULSE_RESOLUTION,
+      strum: null,
     }
   ])
 
@@ -47,12 +65,12 @@ const InstrumentsEditor = ({
     <Table size="sm" w="100%">
       <Tr>
         <Th></Th>
-        <Th>volume</Th>
-        <Th>legato</Th>
-        <Th>strum + timing</Th>
+        <Th pb={2} verticalAlign="bottom">volume</Th>
+        <Th pb={2} verticalAlign="bottom">legato ➙ stacatto</Th>
+        <Th pb={2} verticalAlign="bottom">strum + timing</Th>
       </Tr>
 
-      {instruments.map(({ name, pulses, pulseResolution }) => {
+      {instruments.map(({ name, pulses, pulseResolution, strum }) => {
         const getPosition = (index: number) => `${index * 4 * QUARTER_WIDTH / pulseResolution}px`
         return (
           <>
@@ -111,39 +129,46 @@ const InstrumentsEditor = ({
               </Td>
               <Td {...topRow}>
                 <HStack>
-                  <Checkbox isChecked />
-                  <Select placeholder="Pattern" size="xs" w={24}>
-                    <option value='option1'>123456</option>
-                    <option value='option2'>123436</option>
-                  </Select>
-
-                  <IconButton
-                    size="xs"
-                    colorScheme="gray"
-                    aria-label='Change'
-                    title='Change '
-                    icon={<TimeIcon />}
-                  />
-                  <Slider
-                    value={80}
-                    min={0}
-                    max={100}
-                    colorScheme="blackAlpha"
-                    w={24}
-                  >
-                    <SliderTrack bg="blue.100">
-                      <SliderFilledTrack bg='LightSkyBlue' />
-                    </SliderTrack>
-                    <SliderThumb boxSize="18px" background="DodgerBlue" boxShadow="0px 1px 2px rgba(0, 0, 0, 0.8)">
-                      <Box color="white" as={TimeIcon} />
-                    </SliderThumb>
-                  </Slider>
+                  <Checkbox isChecked={strum !== null} />
+                  {!strum && (
+                    <Text>--</Text>
+                  )}
+                  {strum && (
+                    <>
+                      <Select value={strum?.pattern} size="xs" w={24}>
+                        <option value='123456'>123456</option>
+                        <option value='123436'>123436</option>
+                        <option value='1234'>1234</option>
+                      </Select>
+                      <IconButton
+                        size="xs"
+                        colorScheme="gray"
+                        aria-label='Change'
+                        title='Change '
+                        icon={<TimeIcon />}
+                      />
+                      <Slider
+                        value={80}
+                        min={0}
+                        max={100}
+                        colorScheme="blackAlpha"
+                        w={24}
+                      >
+                        <SliderTrack bg="blue.100">
+                          <SliderFilledTrack bg='LightSkyBlue' />
+                        </SliderTrack>
+                        <SliderThumb boxSize="18px" background="DodgerBlue" boxShadow="0px 1px 2px rgba(0, 0, 0, 0.8)">
+                          <Box color="white" as={TimeIcon} />
+                        </SliderThumb>
+                      </Slider>
+                    </>
+                  )}
                 </HStack>
               </Td>
-            </Tr>
+            </Tr >
 
             {/* pattern row */}
-            <Tr>
+            < Tr >
               <Td {...bottomRow}>
                 <HStack pl={4}>
                   <Text verticalAlign="top" mt={-2} fontSize="30px" color="blackAlpha.600">⦦</Text>
@@ -159,7 +184,7 @@ const InstrumentsEditor = ({
                       icon={<EditIcon />}
                     />
                   </ButtonGroup>
-                  <Text textTransform="uppercase" fontSize="xs" color="blackAlpha.500">rhythm</Text>
+                  <Text textTransform="uppercase" fontSize="xs" color="blackAlpha.500">pattern</Text>
                 </HStack>
               </Td>
               <Td {...bottomRow} colSpan={3}>

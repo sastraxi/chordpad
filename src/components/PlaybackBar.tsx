@@ -127,9 +127,9 @@ const PlaybackBar = () => {
       <Modal closeOnOverlayClick={false} isOpen={isOpen} onClose={onClose} size="4xl" preserveScrollBarGap>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Instruments</ModalHeader>
+          <ModalHeader pt={6} mb={-4}>Instruments</ModalHeader>
           <ModalCloseButton />
-          <ModalBody overflow="hidden">
+          <ModalBody overflow="hidden" mt={-8}>
             <InstrumentsEditor onClose={onClose} />
           </ModalBody>
         </ModalContent>
