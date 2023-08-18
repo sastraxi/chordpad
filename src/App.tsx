@@ -31,7 +31,7 @@ const App = () => {
           </HStack>
           <Box height={BOTTOM_BAR_HEIGHT} />
         </Flex>
-        <ToolWindows />
+        {/* <ToolWindows /> */}
       </Flex>
       <Box position="fixed" bottom={0} left={0} right={0}>
         <PlaybackBar />

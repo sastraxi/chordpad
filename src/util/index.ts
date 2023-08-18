@@ -23,3 +23,6 @@ export const bpmToMsec = (bpm: number) => (1000 / (bpm / 60))
 
 export const sum = <T extends number>(array: Array<T>) =>
   array.reduce((accum, current) => accum + current, 0)
+
+export const constrain = (val: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, val))

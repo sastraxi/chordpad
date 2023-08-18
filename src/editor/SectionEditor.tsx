@@ -1,7 +1,7 @@
 import { Box, Editable, EditableInput, EditablePreview, HStack, Heading, Kbd, Text, VStack } from '@chakra-ui/react'
 import ChordInput from '../inputs/ChordInput'
 import { useCallback, useMemo, useRef, useState } from 'react'
-import TimelineItem from './TimelineItem'
+import TimelineItem, { ItemView } from './TimelineItem'
 import { UseComboboxGetInputPropsOptions } from 'downshift'
 import { BaseTimelineItem, SectionItem, useDefaultSongContext, useSection } from '../state/song'
 import { range, remove, update } from '../util'
@@ -47,25 +47,20 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
 
   /**
    * If this item needs to be split up to fit on multiple timeline rows, 
-   * this returns the lengths we need to do it.
+   * this returns the "view windows" we need to do it.
    */
-  const getCutLengths = (item: SectionItem, position: number): number[] => {
-    const cuts: number[] = []
-    let remaining = item.durationBeats
+  const getCutViews = (item: SectionItem, position: number): ItemView[] => {
+    const cuts: ItemView[] = []
     let linePosition = position % lineLength
-    while (remaining > 0) {
-      const next = Math.min(remaining, lineLength - linePosition)
-      cuts.push(next)
-      remaining -= next
+    let last = 0
+    while (last < item.durationBeats) {
+      const next = last + Math.min(item.durationBeats - last, lineLength - linePosition)
+      cuts.push({ start: last, end: next })
       linePosition = 0
+      last = next
     }
     return cuts
   }
-
-  const cutItem = ({ durationBeats, ...item }: SectionItem, position: number): SectionItem => ({
-    ...item,
-    durationBeats: Math.min(durationBeats, (position % lineLength)),
-  })
 
   const chordsContainer = useRef<HTMLDivElement | null>(null)
 
@@ -132,6 +127,7 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
     : 0
 
   const numLines = Math.ceil(endPosition / lineLength)
+  console.log(lineLength, numLines, positions, endPosition)
 
   return (
     <Box>
@@ -159,37 +155,33 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
         <VStack width={`${lineWidth}px`} position="absolute" alignItems="flex-start" left={0} top={0}>
           {range(numLines).map((i) => (
             <TimelineRow
-              length={i === numLines - 1 ? (endPosition % lineLength) : lineLength}
+              key={i}
+              length={i === numLines - 1 ? (endPosition - (lineLength * (numLines - 1))) : lineLength}
               lengthResolution={4}
               quarterWidth={globalScale.quarterWidth}
               lineHeight={globalScale.lineHeight}
               startAt={i * lineLength}
               subdivisions={4}
               timeSignature={timeSignature}
-            >&nbsp;</TimelineRow>
+            />
           ))}
         </VStack>
-        <Box ref={chordsContainer} width={`${lineWidth}px`} onDragOver={(e) => { e.preventDefault(); return false; }}>
+        {/* FIXME: minHeight is not appropriate; fix last TimelineItem! */}
+        <Box ref={chordsContainer} minHeight={`${globalScale.lineHeight}px`} width={`${lineWidth}px`} onDragOver={(e) => { e.preventDefault(); return false; }}>
           {
             /* all items that exist in state */
             section.items.map((item, index) => {
               const isValid = item.chord ? isValidChord(item.chord) : false
               const romanNumeral: string | undefined = isValid ? getRomanNumeral(key, item.chord!) : undefined
-
-              const cuts = getCutLengths(item, positions[index])
-              return cuts.map((durationBeats, cutIndex) => {
+              return getCutViews(item, positions[index]).map((view, cutIndex) => {
                 const isFirst = cutIndex === 0
-                const isLast = cutIndex === cuts.length - 1
-                // FIXME: the problem right now is that the item's duration is being updated based on the
-                // "cut" durationBeats that the last rendered item has. We need to lean into TimelineItem
-                // being a "view" onto an item, so pass in start={} end={} and determine things inside
                 return (
                   <TimelineItem
                     key={`${index}.${cutIndex}`}
-                    item={{ ...item, durationBeats }}
-                    updateItem={isLast
-                      ? (updates) => setItems(update<SectionItem>(section.items, index, updates))
-                      : undefined}
+                    item={item}
+                    view={view}
+                    position={positions[index]}
+                    updateItem={(updates) => setItems(update<SectionItem>(section.items, index, updates))}
                     timeSignature={timeSignature}
                   >
                     <Kbd userSelect="none" opacity={item.chord ? 1 : 0} colorScheme="gray" fontSize="sm" pt={1}>
@@ -211,6 +203,7 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
           {/* a "new item" that is saved as a new SectionItem when successfully edited */}
           <TimelineItem
             item={{ durationBeats: timeSignature.perMeasure }}
+            position={endPosition}
             timeSignature={timeSignature}
             additionalBoxProps={{
               position: "absolute",

@@ -20,7 +20,7 @@ const TimelineRow = ({
   length: number,
   lengthResolution: number,  // e.g. quarter = 4, eighth = 8, ... 
   subdivisions: number,
-  children: React.ReactNode
+  children?: React.ReactNode
   timeSignature: TimeSignature
   lineHeight: number
   quarterWidth: number
