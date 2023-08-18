@@ -1,9 +1,9 @@
-import { Box, Editable, EditableInput, EditablePreview, HStack, Heading, Kbd, Text, VStack } from '@chakra-ui/react'
+import { Box, Editable, EditableInput, EditablePreview, HStack, Kbd, Text, VStack } from '@chakra-ui/react'
 import ChordInput from '../inputs/ChordInput'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import TimelineItem, { ItemView } from './TimelineItem'
 import { UseComboboxGetInputPropsOptions } from 'downshift'
-import { BaseTimelineItem, SectionItem, useDefaultSongContext, useSection } from '../state/song'
+import { SectionItem, useDefaultSongContext, useSection } from '../state/song'
 import { range, remove, update } from '../util'
 import SongContextEditor from './SongContextEditor'
 

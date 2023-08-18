@@ -133,6 +133,7 @@ const TimelineItem = ({
       position="relative"
       display="inline-block"
       cursor="pointer"
+      overflow="visible"
       {...additionalBoxProps}
     >
       {updateItem && hasEnd &&
@@ -158,7 +159,7 @@ const TimelineItem = ({
           zIndex={99}
           className="dragHandle"
           position="absolute"
-          left={`${previewHandleOffset.x - 3}px`}
+          left={`${previewHandleOffset.x}px`}
           top={`${previewHandleOffset.y}px`}
           height="100%"
           width="2px"
