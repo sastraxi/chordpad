@@ -19,9 +19,18 @@ type GlobalScaleStateAndMutators = GlobalScaleState & {
   reset: () => void
 }
 
-export const useGlobalScale = create<GlobalScaleStateAndMutators>()(
+const useGlobalScaleInternal = create<GlobalScaleStateAndMutators>()(
   (set) => ({
     ...DEFAULT_STATE,
     reset: () => set(() => DEFAULT_STATE),
   }),
 )
+
+export const useGlobalScale = () => {
+  const { quarterWidth, measuresPerLine, lineHeight } = useGlobalScaleInternal()
+  return {
+    quarterWidth,
+    measuresPerLine,
+    lineHeight,
+  }
+}

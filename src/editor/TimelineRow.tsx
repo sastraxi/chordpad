@@ -1,5 +1,4 @@
 import { Box } from "@chakra-ui/react"
-import { useGlobalScale } from "../state/global-scale"
 import { TimeSignature } from "../types"
 import { range } from "../util"
 
@@ -23,17 +22,13 @@ const TimelineRow = ({
   subdivisions: number,
   children: React.ReactNode
   timeSignature: TimeSignature
-  lineHeight?: number
-  quarterWidth?: number
+  lineHeight: number
+  quarterWidth: number
   rulerOpacity?: number
   rulerText?: boolean
 }) => {
-
-  const globalScale = useGlobalScale()
-  const renderHeight = lineHeight ?? globalScale.lineHeight
-  const renderWidth = quarterWidth ?? globalScale.quarterWidth
   const rowLength = length / lengthResolution
-  const rowWidth = renderWidth * 4 * rowLength
+  const rowWidth = quarterWidth * 4 * rowLength
 
   // TODO: compute based on global playback.
   // have a useMemo that depends only on "playbackStartedAt"
@@ -51,10 +46,10 @@ const TimelineRow = ({
   } as React.CSSProperties;
 
   return (
-    <Box position="relative" width={`${rowWidth}px`} height={`${renderHeight}px`}>
+    <Box position="relative" width={`${rowWidth}px`} height={`${lineHeight}px`}>
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        viewBox={`-1 0 ${rowWidth + 1} ${renderHeight}`}
+        viewBox={`-1 0 ${rowWidth + 1} ${lineHeight}`}
         style={{
           position: "absolute",
           top: 0,
@@ -64,7 +59,7 @@ const TimelineRow = ({
         }}
       >
         <g fill="red">
-          <rect className="play-cursor" x={0} y={0} width={2.5} opacity="0.6" height={renderHeight} />
+          <rect className="play-cursor" x={0} y={0} width={2.5} opacity="0.6" height={lineHeight} />
         </g>
         <g fill="#5f5f5f" opacity={rulerOpacity}>
           {
@@ -78,14 +73,14 @@ const TimelineRow = ({
                 return (
                   <g key={`bar-${n}`}>
                     <path
-                      d={`M${position * renderWidth} 100 l0 -100`}
+                      d={`M${position * quarterWidth} 100 l0 -100`}
                       stroke="black"
                       strokeWidth="2"
                       strokeDasharray="2,2"
                       opacity="0.4"
                     />
                     {rulerText &&
-                      <text x={position * renderWidth + 12} y={renderHeight - 14} fontSize="11px">
+                      <text x={position * quarterWidth + 12} y={lineHeight - 14} fontSize="11px">
                         {globalPosition / timeSignature.perMeasure}
                       </text>
                     }
@@ -97,8 +92,8 @@ const TimelineRow = ({
                 return (
                   <rect
                     key={`tick-${n}`}
-                    x={position * renderWidth}
-                    y={renderHeight - 8}
+                    x={position * quarterWidth}
+                    y={lineHeight - 8}
                     width="1.5"
                     height="8"
                     opacity="0.7"
@@ -110,8 +105,8 @@ const TimelineRow = ({
                 return (
                   <rect
                     key={`tick-${n}`}
-                    x={position * renderWidth}
-                    y={renderHeight - 3}
+                    x={position * quarterWidth}
+                    y={lineHeight - 3}
                     width="1.5"
                     height="3"
                     opacity="0.3"

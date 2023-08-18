@@ -19,19 +19,15 @@ type Coordinate = {
 type PropTypes = {
   item: BaseTimelineItem
   updateItem?: (updates: Partial<BaseTimelineItem>) => void
-  positionBeats: number
   timeSignature: TimeSignature
   children: React.ReactNode
-  subdivisions?: number
 }
 
 const TimelineItem = ({
   item,
   updateItem,
-  positionBeats,
   timeSignature,
   children,
-  subdivisions = 4,
 }: PropTypes) => {
   const { quarterWidth, measuresPerLine, lineHeight } = useGlobalScale()
 
@@ -139,57 +135,11 @@ const TimelineItem = ({
       <Box position="absolute" left="10px" top="5px">
         {children}
       </Box>
+
+      {/* start-of-item "handle" */}
       <svg xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 ${width} 100`} style={{ userSelect: "none" }}>
         <g fill="#5f5f5f">
-          {
-            range(scratchDuration * subdivisions).map((n) => {
-              const position = n / subdivisions
-              const globalPosition = positionBeats + position
-              const isStartOfBar = globalPosition % timeSignature.perMeasure === 0
-
-              if (n === 0) {
-                // start of this item
-                return (
-                  <g key="item-start">
-                    <rect x={position * quarterWidth} y="0" width="3" height="100" />
-                    {isStartOfBar &&
-                      <text x={position * quarterWidth + 12} y="86" fontSize="11px">
-                        {globalPosition / timeSignature.perMeasure}
-                      </text>}
-                  </g>
-                )
-
-              } else if (isStartOfBar) {
-                // start of a bar
-                return (
-                  <g key={`bar-${n}`}>
-                    <path
-                      d={`M${position * quarterWidth} 100 l0 -100`}
-                      stroke="black"
-                      strokeWidth="2"
-                      strokeDasharray="2,2"
-                      opacity="0.4"
-                    />
-                    <text x={position * quarterWidth + 12} y="86" fontSize="11px">
-                      {globalPosition / timeSignature.perMeasure}
-                    </text>
-                  </g>
-                )
-
-              } else if (position % 1 === 0) {
-                // big ticks
-                return (
-                  <rect key={`tick-${n}`} x={position * quarterWidth} y="92" width="1.5" height="8" opacity="0.7" />
-                )
-
-              } else {
-                // small ticks
-                return (
-                  <rect key={`tick-${n}`} x={position * quarterWidth} y="97" width="1.5" height="3" opacity="0.3" />
-                )
-              }
-            })
-          }
+          <rect x="0" y="0" width="3" height="100" />
         </g>
       </svg>
     </Box >

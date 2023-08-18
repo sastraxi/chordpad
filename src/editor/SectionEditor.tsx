@@ -1,14 +1,16 @@
-import { Box, Editable, EditableInput, EditablePreview, HStack, Kbd } from '@chakra-ui/react'
+import { Box, Editable, EditableInput, EditablePreview, HStack, Heading, Kbd, Text } from '@chakra-ui/react'
 import ChordInput from '../inputs/ChordInput'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import TimelineItem from './TimelineItem'
 import { UseComboboxGetInputPropsOptions } from 'downshift'
-import { SectionItem, useDefaultSongContext, useSection } from '../state/song'
-import { remove, update } from '../util'
+import { BaseTimelineItem, SectionItem, useDefaultSongContext, useSection } from '../state/song'
+import { range, remove, update } from '../util'
 import SongContextEditor from './SongContextEditor'
 
 import { isValidChord } from 'noteynotes/theory/chords'
 import { getRomanNumeral } from 'noteynotes/theory/triads'
+import { useGlobalScale } from '../state/global-scale'
+import TimelineRow from './TimelineRow'
 
 type PropTypes = {
   index: number
@@ -16,10 +18,14 @@ type PropTypes = {
 
 const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
   const defaultContext = useDefaultSongContext()
+  const globalScale = useGlobalScale()
   const { section, setItems, setTitle, ...contextMutators } = useSection(sectionIndex)
 
   const timeSignature = section.contextOverrides.timeSignature ?? defaultContext.timeSignature
   const key = section.contextOverrides.key ?? defaultContext.key
+
+  const lineLength = globalScale.measuresPerLine * timeSignature.perMeasure
+  const lineWidth = lineLength * globalScale.quarterWidth
 
   const updateChord = (index: number) =>
     (newChord: string | null) => setItems(update(section.items, index, { chord: newChord }))
@@ -38,6 +44,28 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
       },
     ])
   }
+
+  /**
+   * If this item needs to be split up to fit on multiple timeline rows, 
+   * this returns the lengths we need to do it.
+   */
+  const getCutLengths = (item: SectionItem, position: number): number[] => {
+    const cuts: number[] = []
+    let remaining = item.durationBeats
+    let linePosition = position % lineLength
+    while (remaining > 0) {
+      const next = Math.min(remaining, lineLength - linePosition)
+      cuts.push(next)
+      remaining -= next
+      linePosition = 0
+    }
+    return cuts
+  }
+
+  const cutItem = ({ durationBeats, ...item }: SectionItem, position: number): SectionItem => ({
+    ...item,
+    durationBeats: Math.min(durationBeats, (position % lineLength)),
+  })
 
   const chordsContainer = useRef<HTMLDivElement | null>(null)
 
@@ -103,6 +131,8 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
     ? positions[positions.length - 1] + section.items[section.items.length - 1].durationBeats
     : 0
 
+  const numLines = Math.ceil(endPosition / lineLength)
+
   return (
     <Box>
       <HStack py={2}>
@@ -125,47 +155,72 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
           mutators={contextMutators}
         />
       </HStack>
-      <Box ref={chordsContainer} maxWidth="1200px" onDragOver={(e) => { e.preventDefault(); return false; }}>
-        {
-          /* all items that exist in state */
-          section.items.map((item, index) => {
-            const isValid = item.chord ? isValidChord(item.chord) : false
-            const romanNumeral: string | undefined = isValid ? getRomanNumeral(key, item.chord!) : undefined
-            return (
-              <TimelineItem
-                key={index}
-                item={item}
-                updateItem={(updates) => setItems(update<SectionItem>(section.items, index, updates))}
-                positionBeats={positions[index]}
-                timeSignature={timeSignature}
-              >
-                <Kbd userSelect="none" opacity={item.chord ? 1 : 0} colorScheme="gray" fontSize="sm" pt={1}>
-                  {romanNumeral}
-                </Kbd>
-                <ChordInput
-                  key={index}
-                  value={item.chord}
-                  onChange={updateChord(index)}
-                  onClear={removeChord(index)}
-                  additionalInputProps={inputProps}
-                />
-              </TimelineItem>
-            )
-          })
-        }
-        {/* a "new item" that is saved as a new SectionItem when successfully edited */}
-        <TimelineItem
-          item={{ durationBeats: timeSignature.perMeasure }}
-          positionBeats={endPosition}
-          timeSignature={timeSignature}
-        >
-          <Kbd opacity={0} colorScheme="gray" fontSize="sm" pt={1} />
-          <ChordInput
-            value={null}
-            onChange={addChord}
-            additionalInputProps={inputProps}
-          />
-        </TimelineItem>
+      <Box position="relative">
+        <Box width={`${lineWidth}px`} position="absolute" left={0} top={0}>
+          {range(numLines).map((i) => (
+            <TimelineRow
+              length={i === numLines - 1 ? (endPosition % lineLength) : lineLength}
+              lengthResolution={4}
+              quarterWidth={globalScale.quarterWidth}
+              lineHeight={globalScale.lineHeight}
+              startAt={i * lineLength}
+              subdivisions={4}
+              timeSignature={timeSignature}
+            >&nbsp;</TimelineRow>
+          ))}
+        </Box>
+        <Box ref={chordsContainer} width={`${lineWidth}px`} onDragOver={(e) => { e.preventDefault(); return false; }}>
+          {
+            /* all items that exist in state */
+            section.items.map((item, index) => {
+              const isValid = item.chord ? isValidChord(item.chord) : false
+              const romanNumeral: string | undefined = isValid ? getRomanNumeral(key, item.chord!) : undefined
+
+              const cuts = getCutLengths(item, positions[index])
+              return cuts.map((durationBeats, cutIndex) => {
+                const isFirst = cutIndex === 0
+                const isLast = cutIndex === cuts.length - 1
+                // FIXME: the problem right now is that the item's duration is being updated based on the
+                // "cut" durationBeats that the last rendered item has. We need to lean into TimelineItem
+                // being a "view" onto an item, so pass in start={} end={} and determine things inside
+                return (
+                  <TimelineItem
+                    key={`${index}.${cutIndex}`}
+                    item={{ ...item, durationBeats }}
+                    updateItem={isLast
+                      ? (updates) => setItems(update<SectionItem>(section.items, index, updates))
+                      : undefined}
+                    timeSignature={timeSignature}
+                  >
+                    <Kbd userSelect="none" opacity={item.chord ? 1 : 0} colorScheme="gray" fontSize="sm" pt={1}>
+                      {romanNumeral}
+                    </Kbd>
+                    {isFirst && <ChordInput
+                      key={index}
+                      value={item.chord}
+                      onChange={updateChord(index)}
+                      onClear={removeChord(index)}
+                      additionalInputProps={inputProps}
+                    />}
+                    {!isFirst && <Text size="md">{item.chord}</Text>}
+                  </TimelineItem>
+                )
+              })
+            })
+          }
+          {/* a "new item" that is saved as a new SectionItem when successfully edited */}
+          <TimelineItem
+            item={{ durationBeats: timeSignature.perMeasure }}
+            timeSignature={timeSignature}
+          >
+            <Kbd opacity={0} colorScheme="gray" fontSize="sm" pt={1} />
+            <ChordInput
+              value={null}
+              onChange={addChord}
+              additionalInputProps={inputProps}
+            />
+          </TimelineItem>
+        </Box>
       </Box>
     </Box>
   )
