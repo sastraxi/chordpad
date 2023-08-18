@@ -1,4 +1,4 @@
-import { Box, Editable, EditableInput, EditablePreview, HStack, Heading, Kbd, Text } from '@chakra-ui/react'
+import { Box, Editable, EditableInput, EditablePreview, HStack, Heading, Kbd, Text, VStack } from '@chakra-ui/react'
 import ChordInput from '../inputs/ChordInput'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import TimelineItem from './TimelineItem'
@@ -156,7 +156,7 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
         />
       </HStack>
       <Box position="relative">
-        <Box width={`${lineWidth}px`} position="absolute" left={0} top={0}>
+        <VStack width={`${lineWidth}px`} position="absolute" alignItems="flex-start" left={0} top={0}>
           {range(numLines).map((i) => (
             <TimelineRow
               length={i === numLines - 1 ? (endPosition % lineLength) : lineLength}
@@ -168,7 +168,7 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
               timeSignature={timeSignature}
             >&nbsp;</TimelineRow>
           ))}
-        </Box>
+        </VStack>
         <Box ref={chordsContainer} width={`${lineWidth}px`} onDragOver={(e) => { e.preventDefault(); return false; }}>
           {
             /* all items that exist in state */
@@ -212,6 +212,9 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
           <TimelineItem
             item={{ durationBeats: timeSignature.perMeasure }}
             timeSignature={timeSignature}
+            additionalBoxProps={{
+              position: "absolute",
+            }}
           >
             <Kbd opacity={0} colorScheme="gray" fontSize="sm" pt={1} />
             <ChordInput

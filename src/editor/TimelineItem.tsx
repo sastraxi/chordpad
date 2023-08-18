@@ -21,6 +21,7 @@ type PropTypes = {
   updateItem?: (updates: Partial<BaseTimelineItem>) => void
   timeSignature: TimeSignature
   children: React.ReactNode
+  additionalBoxProps?: BoxProps
 }
 
 const TimelineItem = ({
@@ -28,6 +29,7 @@ const TimelineItem = ({
   updateItem,
   timeSignature,
   children,
+  additionalBoxProps = {},
 }: PropTypes) => {
   const { quarterWidth, measuresPerLine, lineHeight } = useGlobalScale()
 
@@ -100,6 +102,7 @@ const TimelineItem = ({
       position="relative"
       display="inline-block"
       cursor="pointer"
+      {...additionalBoxProps}
     >
       {updateItem &&
         <>
