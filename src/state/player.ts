@@ -95,17 +95,23 @@ const nextQueueRange = (playback: PlaybackState): Range => {
 
 // TODO: we haven't done anything to re-buffer when the song changes.
 
+const STRUM_DELAY_SEC = 0.08
+const NOTE_LENGTH_SEC = 0.5
+const TWANGY_GUITAR = 276
+
 const queue = (item: SectionItem, atSec: number, midiSounds: MIDISoundPlayer) => {
   if (item.chord) {
     const fretting = getFrettings(item.chord)[0]
     if (fretting) {
       const chord = frettingToVexChord(fretting)
-      midiSounds.playChordAt(
-        atSec,
-        TWANGY_GUITAR,
-        chord.notes.map(Midi.toMidi),
-        0.3,
-      )
+      chord.notes.forEach((note, i) => {
+        midiSounds.playChordAt(
+          atSec + i * STRUM_DELAY_SEC,
+          TWANGY_GUITAR,
+          [Midi.toMidi(note)],
+          NOTE_LENGTH_SEC,
+        )
+      })
     }
   }
 }
@@ -173,8 +179,6 @@ type PlayerState = {
   cursorMs: number
   repeat: boolean
 }
-
-const TWANGY_GUITAR = 276
 
 const DEFAULT_STATE: PlayerState = {
   playback: undefined,
