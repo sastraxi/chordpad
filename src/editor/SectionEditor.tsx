@@ -3,14 +3,15 @@ import ChordInput from '../inputs/ChordInput'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import TimelineItem, { ItemView } from './TimelineItem'
 import { UseComboboxGetInputPropsOptions } from 'downshift'
-import { SectionItem, useDefaultSongContext, useSection } from '../state/song'
-import { range, remove, update } from '../util'
+import { SectionItem, useDefaultSongContext, useSection, useSongPlaybackInfo } from '../state/song'
+import { bpmToMsec, range, remove, update } from '../util'
 import SongContextEditor from './SongContextEditor'
 
 import { isValidChord } from 'noteynotes/theory/chords'
 import { getRomanNumeral } from 'noteynotes/theory/triads'
 import { useGlobalScale } from '../state/global-scale'
 import TimelineRow from './TimelineRow'
+import { usePlayback } from '../state/player'
 
 type PropTypes = {
   index: number
@@ -23,7 +24,11 @@ const SectionEditor = ({
 }: PropTypes) => {
   const defaultContext = useDefaultSongContext()
   const globalScale = useGlobalScale()
+  const playback = usePlayback()
+  const { positionsMs } = useSongPlaybackInfo()
   const { section, setItems, setTitle, ...contextMutators } = useSection(sectionIndex)
+
+  const sectionStartsAtMs = positionsMs[sectionIndex]
 
   const timeSignature = section.contextOverrides.timeSignature ?? defaultContext.timeSignature
   const key = section.contextOverrides.key ?? defaultContext.key
@@ -156,18 +161,25 @@ const SectionEditor = ({
       </HStack>
       <Box position="relative">
         <VStack width={`${lineWidth}px`} position="absolute" alignItems="flex-start" left={0} top={0}>
-          {range(numLines).map((i) => (
-            <TimelineRow
-              key={i}
-              length={i === numLines - 1 ? (endPosition - (lineLength * (numLines - 1))) : lineLength}
-              lengthResolution={4}
-              quarterWidth={globalScale.quarterWidth}
-              lineHeight={globalScale.lineHeight}
-              startAt={startMeasure + i * lineLength}
-              subdivisions={4}
-              timeSignature={timeSignature}
-            />
-          ))}
+          {range(numLines).map((i) => {
+            const bpm = section.contextOverrides.bpm ?? defaultContext.bpm
+            const length = i === numLines - 1 ? (endPosition - (lineLength * (numLines - 1))) : lineLength
+            return (
+              <TimelineRow
+                key={i}
+                length={length}
+                lengthResolution={4}
+                quarterWidth={globalScale.quarterWidth}
+                lineHeight={globalScale.lineHeight}
+                startAt={startMeasure + i * lineLength}
+                subdivisions={4}
+                timeSignature={timeSignature}
+                playback={playback}
+                bpm={bpm}
+                startAtMs={sectionStartsAtMs + (i * lineLength * bpmToMsec(bpm))}
+              />
+            )
+          })}
         </VStack>
         {/* FIXME: minHeight is not appropriate; fix last TimelineItem! */}
         <Box ref={chordsContainer} minHeight={`${globalScale.lineHeight}px`} width={`${lineWidth}px`} onDragOver={(e) => { e.preventDefault(); return false; }}>

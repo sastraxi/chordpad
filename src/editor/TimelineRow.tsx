@@ -1,12 +1,58 @@
+import { useMemo } from "react"
 import { Box } from "@chakra-ui/react"
-import { TimeSignature } from "../types"
+
+import { type TimeSignature } from "../types"
 import { range } from "../util"
+import { PlaybackState, calcCursorMs } from "../state/player"
+import { MIN_TO_MS } from "../util/conversions"
 
 import './TimelineRow.css'
-import { useRef } from "react"
+
+const SvgPlaybackCursor = ({
+  rowStartMs,
+  playback,
+  rowLengthBeats,
+  bpm,
+  lineHeight
+}: {
+  playback: PlaybackState
+  rowStartMs: number
+  rowLengthBeats: number
+  bpm: number
+  lineHeight: number
+}) => {
+  const rowLengthMs = (rowLengthBeats / bpm) * MIN_TO_MS
+  const style = useMemo(
+    () => {
+      const cursorMs = calcCursorMs(playback)
+      const delayMs = rowStartMs - cursorMs
+      return {
+        "--timeline-playback-start": "0",
+        "--timeline-playback-end": "100%",
+        "--timeline-playback-duration": `${rowLengthMs}ms`,
+        "--timeline-playback-display": "initial",
+        "--timeline-playback-delay": `${delayMs}ms`,
+      } as React.CSSProperties
+    },
+    [rowLengthMs, rowStartMs, playback.startedAtMs, playback.cursorStartMs])
+
+  return (
+    <g fill="red" style={style}>
+      <rect
+        className="play-cursor"
+        x={0}
+        y={0}
+        width={2.5}
+        opacity="0.6"
+        height={lineHeight}
+      />
+    </g>
+  )
+}
 
 const TimelineRow = ({
   startAt,
+  startAtMs,
   length,
   lengthResolution,
   subdivisions,
@@ -14,54 +60,27 @@ const TimelineRow = ({
   timeSignature,
   lineHeight,
   quarterWidth,
+  playback,
+  bpm,
   rulerOpacity = 1.0,
   rulerText = true,
 }: {
-  startAt: number,
+  startAt: number,  // measures
   length: number,
   lengthResolution: number,  // e.g. quarter = 4, eighth = 8, ... 
   subdivisions: number,
-  children?: React.ReactNode
   timeSignature: TimeSignature
   lineHeight: number
   quarterWidth: number
   rulerOpacity?: number
   rulerText?: boolean
+  startAtMs?: number,
+  playback?: PlaybackState
+  bpm?: number
+  children?: React.ReactNode
 }) => {
-  const cursorRef = useRef<SVGRectElement | null>(null)
   const rowLength = length / lengthResolution
   const rowWidth = quarterWidth * 4 * rowLength
-
-  /*
-  const effect = new KeyframeEffect(
-    el, // Element to animate
-    [ // Keyframes
-      {transform: "translateY(0%)"}, 
-      {transform: "translateY(100%)"}
-    ], 
-    {duration: 3000, direction: "alternate", easing: "linear"} // Keyframe settings
-  );
-
-  const animation = new Animation(effect, document.timeline);
-
-  animation.play();
-  */
-
-  // TODO: compute based on global playback.
-  // have a useMemo that depends only on "playbackStartedAt"
-  // (which will be null if playback is stopped).
-  // when we finally render, we'll calculate animatiqon delays for
-  // each bar that is being rendered as well as the duration and
-  // start / end (end will probably always be 100%).
-
-  const style = {
-    "--timeline-playback-start": "0",
-    "--timeline-playback-end": "100%",
-    "--timeline-playback-duration": `calc(${rowLength} * 2s)`,
-    "--timeline-playback-display": "initial",
-    "--timeline-playback-delay": "2s",
-  } as React.CSSProperties;
-
   return (
     <Box position="relative" width={`${rowWidth}px`} height={`${lineHeight}px`}>
       <svg
@@ -72,12 +91,15 @@ const TimelineRow = ({
           top: 0,
           left: 0,
           userSelect: "none",
-          ...style,
         }}
       >
-        <g fill="red">
-          <rect ref={cursorRef} className="play-cursor" x={0} y={0} width={2.5} opacity="0.6" height={lineHeight} />
-        </g>
+        {playback && bpm && startAtMs !== undefined && <SvgPlaybackCursor
+          playback={playback}
+          rowLengthBeats={rowLength * 4}
+          lineHeight={lineHeight}
+          bpm={bpm}
+          rowStartMs={startAtMs}
+        />}
         <g fill="#5f5f5f" opacity={rulerOpacity}>
           {
             range(length * subdivisions).map((n) => {

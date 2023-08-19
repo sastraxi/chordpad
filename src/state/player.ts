@@ -5,6 +5,7 @@ import { bpmToMsec } from '../util'
 
 import { getFrettings, frettingToVexChord } from 'noteynotes/instrument/guitar'
 import { Midi } from 'tonal'
+import { MS_TO_SEC } from '../util/conversions'
 
 /**
  * How often should we buffer music, and update the playback cursor in our state?
@@ -18,8 +19,6 @@ const PLAYBACK_TICK_INTERVAL_MS = 100
  */
 const QUEUE_AHEAD_MS = 1500
 
-const MS_TO_SEC = 0.001
-
 let tickInterval: number | undefined = undefined
 
 type PlaybackItem = {
@@ -32,7 +31,7 @@ type PlaybackItem = {
   startsAtMs: number
 }
 
-type PlaybackState = {
+export type PlaybackState = {
   /**
    * When, in "performance time", did playback start?
    * If undefined, we are not currently playing.
@@ -64,7 +63,7 @@ type PlaybackState = {
 
 }
 
-const calcCursorMs = (playback: PlaybackState): number => {
+export const calcCursorMs = (playback: PlaybackState): number => {
   const deltaFromStartMs = performance.now() - playback.startedAtMs
   return playback.cursorStartMs + deltaFromStartMs
 }
@@ -286,4 +285,9 @@ export const useIsPlaying = () => {
 export const useSetPlayer = () => {
   const { setPlayer } = usePlayerState()
   return setPlayer
+}
+
+export const usePlayback = () => {
+  const { playback } = usePlayerState()
+  return playback
 }
