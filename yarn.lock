@@ -2718,6 +2718,7 @@ __metadata:
     react-dnd: ^16.0.1
     react-dnd-html5-backend: ^16.0.1
     react-dom: ^18.2.0
+    tonal: ^5.0.0
     typescript: ^5.0.2
     vite: ^4.3.9
     vite-plugin-mkcert: ^1.15.0

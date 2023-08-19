@@ -3,6 +3,9 @@ import { MIDISoundPlayer } from 'midi-sounds-react'
 import { SectionItem, SongContext, SongSection, SongState } from './song'
 import { bpmToMsec } from '../util'
 
+import { getFrettings, frettingToVexChord } from 'noteynotes/instrument/guitar'
+import { Midi } from 'tonal'
+
 /**
  * How often should we buffer music, and update the playback cursor in our state?
  * This affects most of the UI, but not playback or any cursors in <TimelineRow />.
@@ -93,15 +96,29 @@ const nextQueueRange = (playback: PlaybackState): Range => {
 
 // TODO: we haven't done anything to re-buffer when the song changes.
 
+const queue = (item: SectionItem, atSec: number, midiSounds: MIDISoundPlayer) => {
+  if (item.chord) {
+    const fretting = getFrettings(item.chord)[0]
+    if (fretting) {
+      const chord = frettingToVexChord(fretting)
+      midiSounds.playChordAt(
+        atSec,
+        TWANGY_GUITAR,
+        chord.notes.map(Midi.toMidi),
+        0.3,
+      )
+    }
+  }
+}
+
 const buffer = (
   playbackState: PlaybackState,
   rangeMs: Range,
   sections: SongSection[],
   defaultContext: SongContext,
   midiSounds: MIDISoundPlayer,
-  instrument: number,
 ): Partial<PlaybackState> => {
-  const { audioContextStartSec } = playbackState
+  const { audioContextStartSec, queuedToMs } = playbackState
   let currentIndex = playbackState.currentIndex
 
   // reached end of playback; nothing to do
@@ -114,6 +131,12 @@ const buffer = (
     if (!section || !item) throw new Error('Cannot get duration for an item that does not exist')
     const bpm = section.contextOverrides.bpm ?? defaultContext.bpm
     return bpmToMsec(bpm) * item.durationBeats
+  }
+
+  if (queuedToMs === undefined) {
+    // queue the first chord
+    const atSec = (audioContextStartSec ?? 0) + currentIndex.startsAtMs * MS_TO_SEC
+    queue(item, atSec, midiSounds)
   }
 
   while (item && section && currentIndex.startsAtMs + item.durationBeats < rangeMs.to) {
@@ -133,15 +156,9 @@ const buffer = (
     // update to our current index
     section = sections[currentIndex.section]
     item = section?.items[currentIndex.item]
-    const duration = getCurrentDuration()
 
-    // TODO: queue this item
-    // midiSounds.playChordAt(
-    //   audioContextStartSec + currentIndex.startsAtMs * MS_TO_SEC,
-    //   instrument,
-    //   [Midi],
-
-    // )
+    const atSec = (audioContextStartSec ?? 0) + currentIndex.startsAtMs * MS_TO_SEC
+    queue(item, atSec, midiSounds)
   }
 
   return {
@@ -156,7 +173,6 @@ type PlayerState = {
   midiSounds?: MIDISoundPlayer
   cursorMs: number
   repeat: boolean
-  instrument: number
 }
 
 const TWANGY_GUITAR = 276
@@ -165,7 +181,6 @@ const DEFAULT_STATE: PlayerState = {
   playback: undefined,
   cursorMs: 0,
   repeat: false,
-  instrument: TWANGY_GUITAR,
 }
 
 //////////////////////////////////////////////////////////
@@ -175,7 +190,7 @@ type PlayerStateAndMutators = PlayerState & {
   seek: (toMs: number) => void
   play: () => void
   pause: () => void
-  setPlayer: (player?: MIDISoundPlayer) => void
+  setPlayer: (player: MIDISoundPlayer) => void
 }
 
 const PlayerState = create<PlayerStateAndMutators>()(
@@ -195,7 +210,7 @@ const PlayerState = create<PlayerStateAndMutators>()(
         const range = nextQueueRange(playback)
         const { sections, context } = SongState.getState()
         const bufferChanges = state.midiSounds
-          ? buffer(playback, range, sections, context, state.midiSounds, state.instrument)
+          ? buffer(playback, range, sections, context, state.midiSounds)
           : { queuedToMs: range.to }
 
         return {
@@ -210,7 +225,13 @@ const PlayerState = create<PlayerStateAndMutators>()(
 
     return {
       ...DEFAULT_STATE,
-      reset: () => set(() => DEFAULT_STATE),
+      reset: () => set((state) => {
+        if (state.playback) {
+          clearInterval(tickInterval)
+          state.midiSounds?.cancelQueue()
+        }
+        return DEFAULT_STATE
+      }),
       seek: (toMs: number) => set((state) => {
         if (!state.playback) return { cursorMs: toMs }
 
@@ -245,9 +266,12 @@ const PlayerState = create<PlayerStateAndMutators>()(
           playback: undefined
         }
       }),
-      setPlayer: (midiSounds?: MIDISoundPlayer) => set(() => ({
-        midiSounds,
-      }))
+      setPlayer: (midiSounds: MIDISoundPlayer) => set(() => {
+        midiSounds.setEchoLevel(0.1)
+        midiSounds.setMasterVolume(0.45)
+        midiSounds.cacheInstrument(TWANGY_GUITAR)
+        return { midiSounds }
+      })
     }
   },
 )
