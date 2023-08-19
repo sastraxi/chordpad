@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { ItemIndex, TimeSignature } from '../types'
-import { bpmToMsec, replace, sum, update } from '../util'
+import { accum, bpmToMsec, replace, sum, update } from '../util'
 
 export type Rhythm = {
   /**
@@ -244,12 +244,19 @@ export const useSectionItem = ({ section: sectionIndex, item: itemIndex }: ItemI
 
 export type SongPlaybackSection = {
   name: string
+  /**
+   * In beats.
+   */
+  totalLength: number
   totalLengthMs: number
   subdivisionsMs: Array<number>
 }
 
 type SongPlaybackInfo = {
   sections: Array<SongPlaybackSection>
+  positions: Array<number>
+  positionsMs: Array<number>
+  totalLengthMs: number
 }
 
 export const useSongPlaybackInfo = (): SongPlaybackInfo => {
@@ -258,17 +265,19 @@ export const useSongPlaybackInfo = (): SongPlaybackInfo => {
 
   const playbackSections = sections.map((section, index): SongPlaybackSection => {
     const bpm = section.contextOverrides.bpm ?? defaultContext.bpm
-    const lengths = section.items.map((item) => bpmToMsec(bpm) * item.durationBeats)
+    const lengths = section.items.map((item) => item.durationBeats)
     return {
       name: section.title ?? `Section ${index + 1}`,
-      totalLengthMs: sum(lengths),
+      totalLengthMs: sum(lengths) * bpmToMsec(bpm),
+      totalLength: sum(lengths),
       subdivisionsMs: lengths,
     }
-  }).filter(
-    section => section.totalLengthMs > 0
-  )
+  })
 
   return {
-    sections: playbackSections
+    sections: playbackSections,
+    positions: accum(playbackSections.map(s => s.totalLength)),
+    positionsMs: accum(playbackSections.map(s => s.totalLengthMs)),
+    totalLengthMs: sum(playbackSections.map(s => s.totalLengthMs)),
   }
 }

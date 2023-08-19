@@ -3,6 +3,7 @@ import { TimeSignature } from "../types"
 import { range } from "../util"
 
 import './TimelineRow.css'
+import { useRef } from "react"
 
 const TimelineRow = ({
   startAt,
@@ -27,8 +28,24 @@ const TimelineRow = ({
   rulerOpacity?: number
   rulerText?: boolean
 }) => {
+  const cursorRef = useRef<SVGRectElement | null>(null)
   const rowLength = length / lengthResolution
   const rowWidth = quarterWidth * 4 * rowLength
+
+  /*
+  const effect = new KeyframeEffect(
+    el, // Element to animate
+    [ // Keyframes
+      {transform: "translateY(0%)"}, 
+      {transform: "translateY(100%)"}
+    ], 
+    {duration: 3000, direction: "alternate", easing: "linear"} // Keyframe settings
+  );
+
+  const animation = new Animation(effect, document.timeline);
+
+  animation.play();
+  */
 
   // TODO: compute based on global playback.
   // have a useMemo that depends only on "playbackStartedAt"
@@ -59,7 +76,7 @@ const TimelineRow = ({
         }}
       >
         <g fill="red">
-          <rect className="play-cursor" x={0} y={0} width={2.5} opacity="0.6" height={lineHeight} />
+          <rect ref={cursorRef} className="play-cursor" x={0} y={0} width={2.5} opacity="0.6" height={lineHeight} />
         </g>
         <g fill="#5f5f5f" opacity={rulerOpacity}>
           {

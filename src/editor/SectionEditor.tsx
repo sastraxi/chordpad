@@ -14,9 +14,13 @@ import TimelineRow from './TimelineRow'
 
 type PropTypes = {
   index: number
+  startMeasure?: number
 }
 
-const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
+const SectionEditor = ({
+  index: sectionIndex,
+  startMeasure = 0,
+}: PropTypes) => {
   const defaultContext = useDefaultSongContext()
   const globalScale = useGlobalScale()
   const { section, setItems, setTitle, ...contextMutators } = useSection(sectionIndex)
@@ -159,7 +163,7 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
               lengthResolution={4}
               quarterWidth={globalScale.quarterWidth}
               lineHeight={globalScale.lineHeight}
-              startAt={i * lineLength}
+              startAt={startMeasure + i * lineLength}
               subdivisions={4}
               timeSignature={timeSignature}
             />

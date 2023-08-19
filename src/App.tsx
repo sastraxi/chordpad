@@ -2,7 +2,7 @@ import { Box, Button, Flex, HStack } from '@chakra-ui/react'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 
-import { useSongSections } from './state/song'
+import { useSongPlaybackInfo, useSongSections } from './state/song'
 import SectionEditor from './editor/SectionEditor'
 import SongMetaEditor from './editor/SongMetaEditor'
 
@@ -16,6 +16,7 @@ import { useSetPlayer } from './state/player'
 
 const App = () => {
   const { sections, addSection } = useSongSections()
+  const { positions } = useSongPlaybackInfo()
   const midiSounds = useRef<MIDISoundPlayer>()
   const setPlayer = useSetPlayer()
 
@@ -37,7 +38,13 @@ const App = () => {
         <Flex id="song-view" direction="column" alignItems="flex-start" display="block" p={6}>
           <SongMetaEditor />
           <DndProvider backend={HTML5Backend}>
-            {sections.map((_, index) => <SectionEditor key={index} index={index} />)}
+            {sections.map((_, index) => (
+              <SectionEditor
+                key={index}
+                index={index}
+                startMeasure={positions[index]}
+              />
+            ))}
           </DndProvider>
           <HStack pt={4}>
             <Button size="sm" borderWidth={2} colorScheme="gray" onClick={addSection}>

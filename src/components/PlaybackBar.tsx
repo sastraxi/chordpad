@@ -1,12 +1,11 @@
 import { ArrowRightIcon, ChevronLeftIcon, ChevronRightIcon, RepeatClockIcon } from "@chakra-ui/icons"
-import { Box, Button, HStack, IconButton, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Slider, SliderFilledTrack, SliderThumb, SliderTrack, VStack, useDimensions, useDisclosure } from "@chakra-ui/react"
+import { Box, Button, HStack, IconButton, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, Slider, SliderFilledTrack, SliderThumb, SliderTrack, VStack, useDimensions, useDisclosure } from "@chakra-ui/react"
 
-import { useMemo, useRef } from "react"
-import { SongPlaybackSection, useSongPlaybackInfo } from "../state/song"
-import { sum } from "../util"
-import { BOTTOM_BAR_HEIGHT } from "./constants"
+import { useRef } from "react"
 import InstrumentsEditor from "../editor/InstrumentsEditor"
 import { useIsPlaying, usePlayerState } from "../state/player"
+import { SongPlaybackSection, useSongPlaybackInfo } from "../state/song"
+import { BOTTOM_BAR_HEIGHT } from "./constants"
 
 const SECTION_COLOURS: Array<string> = [
   "yellow",
@@ -16,17 +15,17 @@ const SECTION_COLOURS: Array<string> = [
 const MiniMap = ({
   width,
   height,
-  totalTimeMs,
-  positions,
+  totalLengthMs,
+  positionsMs,
   sections,
 }: {
   width: number
   height: number
-  totalTimeMs: number
-  positions: Array<number>
+  totalLengthMs: number
+  positionsMs: Array<number>
   sections: Array<SongPlaybackSection>
 }) => {
-  const scaleFactor = width / totalTimeMs
+  const scaleFactor = width / totalLengthMs
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -37,7 +36,7 @@ const MiniMap = ({
     >
       {
         sections.map((section, i) => {
-          const x = positions[i] * scaleFactor
+          const x = positionsMs[i] * scaleFactor
           return (
             <g key={`section-${i}`}>
               <rect
@@ -59,22 +58,9 @@ const MiniMap = ({
 }
 
 const PlaybackBar = () => {
-  const playbackInfo = useSongPlaybackInfo()
+  const { sections, positionsMs, totalLengthMs } = useSongPlaybackInfo()
   const { play, pause, reset, cursorMs } = usePlayerState()
   const isPlaying = useIsPlaying()
-  const totalTimeMs = sum(playbackInfo.sections.map(s => s.totalLengthMs))
-
-  const positions = useMemo(() => {
-    return playbackInfo.sections.reduce<Array<number>>((positions, _item, index) => {
-      if (index === 0) {
-        positions.push(0)
-      } else {
-        positions.push(playbackInfo.sections[index - 1].totalLengthMs + positions[index - 1])
-      }
-      return positions
-    }, [])
-  }, [playbackInfo.sections])
-
 
   const { isOpen, onOpen, onClose } = useDisclosure()
   const elementRef = useRef<HTMLDivElement | null>(null)
@@ -111,7 +97,7 @@ const PlaybackBar = () => {
           focusThumbOnChange={false}
           aria-label='slider-ex-4'
           min={0}
-          max={totalTimeMs}
+          max={totalLengthMs}
           value={cursorMs}
           step={1}
         >
@@ -126,14 +112,13 @@ const PlaybackBar = () => {
           {dimensions && <MiniMap
             width={dimensions.contentBox.width}
             height={dimensions.contentBox.height}
-            positions={positions}
-            totalTimeMs={totalTimeMs}
-            sections={playbackInfo.sections}
+            positionsMs={positionsMs}
+            totalLengthMs={totalLengthMs}
+            sections={sections}
           />}
         </Box>
       </VStack>
       <Button onClick={onOpen}>...</Button>
-
       <Modal closeOnOverlayClick={false} isOpen={isOpen} onClose={onClose} size="4xl" preserveScrollBarGap>
         <ModalOverlay />
         <ModalContent>
