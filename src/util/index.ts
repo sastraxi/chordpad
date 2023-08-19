@@ -26,3 +26,17 @@ export const sum = <T extends number>(array: Array<T>) =>
 
 export const constrain = (val: number, min: number, max: number) =>
   Math.max(min, Math.min(max, val))
+
+export const debounce = <F extends (...args: Parameters<F>) => ReturnType<F>>(
+  func: F,
+  waitFor: number,
+) => {
+  let timeout: number | undefined
+
+  const debounced = (...args: Parameters<F>) => {
+    if (timeout) clearTimeout(timeout)
+    timeout = setTimeout(() => func(...args), waitFor)
+  }
+
+  return debounced
+}

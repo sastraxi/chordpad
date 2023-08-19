@@ -16,6 +16,7 @@
     "@emotion/styled": "^11.11.0",
     "downshift": "^8.0.0",
     "framer-motion": "^10.15.0",
+    "midi-sounds-react": "^1.2.54",
     "noteynotes": "https://github.com/sastraxi/noteynotes",
     "react": "^18.2.0",
     "react-dnd": "^16.0.1",

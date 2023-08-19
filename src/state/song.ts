@@ -106,7 +106,7 @@ type SongStateAndMutators = SongState & {
   setSectionTitle: (index: number, title: string) => void
 }
 
-export const useSongState = create<SongStateAndMutators>()(
+export const SongState = create<SongStateAndMutators>()(
   persist(
     (set) => ({
       ...DEFAULT_SONG,
@@ -153,6 +153,8 @@ export const useSongState = create<SongStateAndMutators>()(
     }
   )
 )
+
+const useSongState = SongState
 
 export const useResetSong = () => useSongState(state => state.resetSong)
 

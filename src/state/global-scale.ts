@@ -20,10 +20,16 @@ type GlobalScaleStateAndMutators = GlobalScaleState & {
 }
 
 const useGlobalScaleInternal = create<GlobalScaleStateAndMutators>()(
-  (set) => ({
-    ...DEFAULT_STATE,
-    reset: () => set(() => DEFAULT_STATE),
-  }),
+  persist(
+    (set) => ({
+      ...DEFAULT_STATE,
+      reset: () => set(() => DEFAULT_STATE),
+    }),
+    {
+      name: 'chordpad-global-scale',
+      storage: createJSONStorage(() => localStorage)
+    }
+  )
 )
 
 export const useGlobalScale = () => {
