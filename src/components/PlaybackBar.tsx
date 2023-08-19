@@ -6,6 +6,7 @@ import { SongPlaybackSection, useSongPlaybackInfo } from "../state/song"
 import { sum } from "../util"
 import { BOTTOM_BAR_HEIGHT } from "./constants"
 import InstrumentsEditor from "../editor/InstrumentsEditor"
+import { useIsPlaying, usePlayerState } from "../state/player"
 
 const SECTION_COLOURS: Array<string> = [
   "yellow",
@@ -59,6 +60,8 @@ const MiniMap = ({
 
 const PlaybackBar = () => {
   const playbackInfo = useSongPlaybackInfo()
+  const { play, pause, reset, cursorMs } = usePlayerState()
+  const isPlaying = useIsPlaying()
   const totalTimeMs = sum(playbackInfo.sections.map(s => s.totalLengthMs))
 
   const positions = useMemo(() => {
@@ -92,19 +95,26 @@ const PlaybackBar = () => {
       />
       <Box w={4} />
       <IconButton
-        isDisabled
         colorScheme='blue'
         aria-label='Play / Pause'
+        onClick={isPlaying ? pause : play}
         icon={<ArrowRightIcon />}
       />
       <IconButton
-        isDisabled
         colorScheme='blue'
-        aria-label='Undo'
+        aria-label='Rewind to start'
+        onClick={reset}
         icon={<RepeatClockIcon />}
       />
       <VStack w="full" mx={4}>
-        <Slider aria-label='slider-ex-4' min={0} max={50000} step={1}>
+        <Slider
+          focusThumbOnChange={false}
+          aria-label='slider-ex-4'
+          min={0}
+          max={totalTimeMs}
+          value={cursorMs}
+          step={1}
+        >
           <SliderTrack bg='red.100'>
             <SliderFilledTrack bg='tomato' />
           </SliderTrack>

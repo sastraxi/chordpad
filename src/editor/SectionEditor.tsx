@@ -127,7 +127,6 @@ const SectionEditor = ({ index: sectionIndex }: PropTypes) => {
     : 0
 
   const numLines = Math.ceil(endPosition / lineLength)
-  console.log(lineLength, numLines, positions, endPosition)
 
   return (
     <Box>

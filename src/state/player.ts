@@ -178,7 +178,7 @@ type PlayerStateAndMutators = PlayerState & {
   setPlayer: (player?: MIDISoundPlayer) => void
 }
 
-const usePlaybackState = create<PlayerStateAndMutators>()(
+const PlayerState = create<PlayerStateAndMutators>()(
   (set) => {
 
     /**
@@ -189,7 +189,7 @@ const usePlaybackState = create<PlayerStateAndMutators>()(
       if (!playback) throw new Error("Cannot update playback cursor when not playing!")
 
       const cursorMs = calcCursorMs(playback)
-      if (cursorMs + QUEUE_AHEAD_MS > (playback.queuedToMs ?? 0)) {
+      if (cursorMs + QUEUE_AHEAD_MS < (playback.queuedToMs ?? 0)) {
         return { cursorMs }
       } else {
         const range = nextQueueRange(playback)
@@ -252,7 +252,14 @@ const usePlaybackState = create<PlayerStateAndMutators>()(
   },
 )
 
+export const usePlayerState = PlayerState
+
 export const useIsPlaying = () => {
-  const { playback } = usePlaybackState()
+  const { playback } = usePlayerState()
   return playback !== undefined
+}
+
+export const useSetPlayer = () => {
+  const { setPlayer } = usePlayerState()
+  return setPlayer
 }

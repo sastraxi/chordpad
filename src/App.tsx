@@ -1,4 +1,4 @@
-import { Box, Button, Divider, Flex, HStack, VStack } from '@chakra-ui/react'
+import { Box, Button, Flex, HStack } from '@chakra-ui/react'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 
@@ -10,14 +10,29 @@ import './App.css'
 import PlaybackBar from './components/PlaybackBar'
 import { BOTTOM_BAR_HEIGHT } from './components/constants'
 import ToolWindows from './tool-windows/ToolWindows'
+import MIDISounds, { type MIDISoundPlayer } from 'midi-sounds-react'
+import { useEffect, useRef } from 'react'
+import { useSetPlayer } from './state/player'
 
 const App = () => {
   const { sections, addSection } = useSongSections()
+  const midiSounds = useRef<MIDISoundPlayer>()
+  const setPlayer = useSetPlayer()
+
+  useEffect(
+    () => {
+      if (midiSounds.current) setPlayer(midiSounds.current)
+    },
+    [setPlayer, midiSounds]
+  )
 
   // TODO: scrollIntoView for new sections
 
   return (
     <Box height="100vh" width="100%">
+      <Box display="none">
+        <MIDISounds ref={midiSounds} />
+      </Box>
       <Flex direction="row" justifyContent="space-between">
         <Flex id="song-view" direction="column" alignItems="flex-start" display="block" p={6}>
           <SongMetaEditor />
