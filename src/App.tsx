@@ -2,7 +2,7 @@ import { Box, Button, Flex, HStack } from '@chakra-ui/react'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 
-import { useSongPlaybackInfo, useSongSections } from './state/song'
+import { useTimelineBounds, useSongSections } from './state/song'
 import SectionEditor from './editor/SectionEditor'
 import SongMetaEditor from './editor/SongMetaEditor'
 
@@ -16,7 +16,7 @@ import { useSetPlayer } from './state/player'
 
 const App = () => {
   const { sections, addSection } = useSongSections()
-  const { positions } = useSongPlaybackInfo()
+  const { positions } = useTimelineBounds()
   const midiSounds = useRef<MIDISoundPlayer>()
   const setPlayer = useSetPlayer()
 

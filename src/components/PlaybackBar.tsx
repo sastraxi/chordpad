@@ -4,7 +4,7 @@ import { Box, Button, HStack, IconButton, Modal, ModalBody, ModalCloseButton, Mo
 import { useRef } from "react"
 import InstrumentsEditor from "../editor/InstrumentsEditor"
 import { useIsPlaying, usePlayerState } from "../state/player"
-import { SongPlaybackSection, useSongPlaybackInfo } from "../state/song"
+import { SongPlaybackSection, useTimelineBounds } from "../state/song"
 import { BOTTOM_BAR_HEIGHT } from "./constants"
 
 const SECTION_COLOURS: Array<string> = [
@@ -58,7 +58,7 @@ const MiniMap = ({
 }
 
 const PlaybackBar = () => {
-  const { sections, positionsMs, totalLengthMs } = useSongPlaybackInfo()
+  const { sections, positionsMs, totalLengthMs } = useTimelineBounds()
   const { play, pause, reset, cursorMs } = usePlayerState()
   const isPlaying = useIsPlaying()
 

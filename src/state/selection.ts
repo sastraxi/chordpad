@@ -1,10 +1,9 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import { ItemIndex } from '../types'
 
 type SelectionState = {
-  start: ItemIndex | undefined
-  end: ItemIndex | undefined
+  start: number | undefined
+  end: number | undefined
 }
 
 const DEFAULT_SELECTION: SelectionState = {
@@ -16,8 +15,8 @@ const DEFAULT_SELECTION: SelectionState = {
 
 type SelectionStateAndMutators = SelectionState & {
   clear: () => void
-  setStart: (start: ItemIndex | undefined) => void
-  setEnd: (start: ItemIndex | undefined) => void
+  setStart: (start: number | undefined) => void
+  setEnd: (start: number | undefined) => void
 }
 
 export const useSelection = create<SelectionStateAndMutators>()(
@@ -25,8 +24,8 @@ export const useSelection = create<SelectionStateAndMutators>()(
     (set) => ({
       ...DEFAULT_SELECTION,
       clear: () => set(() => DEFAULT_SELECTION),
-      setStart: (start: ItemIndex | undefined) => set(() => ({ start })),
-      setEnd: (end: ItemIndex | undefined) => set(() => ({ end })),
+      setStart: (start: number | undefined) => set(() => ({ start })),
+      setEnd: (end: number | undefined) => set(() => ({ end })),
     }),
     {
       name: 'chordpad-selection',

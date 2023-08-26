@@ -47,17 +47,17 @@ const TimelineItem = ({
 
   const [dragAnchor, setDragAnchor] = useState<Coordinate | undefined>(undefined)
 
-  const end = view.end ?? item.durationBeats
+  const end = view.end ?? item.duration
   const start = view.start ?? 0
   const viewedDuration = end - start
   const hasStart = start === 0
-  const hasEnd = end === item.durationBeats
+  const hasEnd = end === item.duration
 
   const width = quarterWidth * viewedDuration
   const beatsPerMeasure = (timeSignature.noteValue / 4) * timeSignature.perMeasure
   const beatsPerLine = beatsPerMeasure * measuresPerLine
 
-  const minDelta = 1 - item.durationBeats
+  const minDelta = 1 - item.duration
 
   const offsetToDelta = useCallback((offset: Coordinate): number => {
     const dy = Math.floor(offset.y / lineHeight)
@@ -79,7 +79,7 @@ const TimelineItem = ({
 
   // the preview handle is at the end of the element
   const [previewLengthDelta, setPreviewLengthDelta] = useState(0)
-  const previewHandleOffset = deltaToOffset(previewLengthDelta, position + item.durationBeats)
+  const previewHandleOffset = deltaToOffset(previewLengthDelta, position + item.duration)
 
   ////////////////////////////////////////////////////////
 
@@ -113,10 +113,10 @@ const TimelineItem = ({
 
     const offset = getDragOffset({ x: e.clientX, y: e.clientY })
     const delta = offsetToDelta(offset)
-    const durationBeats = item.durationBeats + delta
+    const duration = item.duration + delta
 
     setPreviewLengthDelta(0)
-    updateItem?.({ durationBeats })
+    updateItem?.({ duration })
     setDragAnchor(undefined)
 
     return false

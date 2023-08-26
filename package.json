@@ -39,6 +39,6 @@
     "vite-plugin-mkcert": "^1.15.0"
   },
   "resolutions": {
-    "noteynotes": "portal:/home/cameron/dev/noteynotes"
+    "noteynotes": "portal:/home/cam/dev/noteynotes"
   }
 }

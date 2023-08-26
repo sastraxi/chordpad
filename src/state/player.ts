@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { MIDISoundPlayer } from 'midi-sounds-react'
-import { SectionItem, SongContext, SongSection, SongState } from './song'
+import { SongState } from './song'
+import { SectionItem, SongContext, SongSection } from './song/types'
 import { bpmToMsec } from '../util'
 
 import { getFrettings, frettingToVexChord } from 'noteynotes/instrument/guitar'
@@ -135,7 +136,7 @@ const buffer = (
   const getCurrentDuration = () => {
     if (!section || !item) throw new Error('Cannot get duration for an item that does not exist')
     const bpm = section.contextOverrides.bpm ?? defaultContext.bpm
-    return bpmToMsec(bpm) * item.durationBeats
+    return bpmToMsec(bpm) * item.duration
   }
 
   if (queuedToMs === undefined) {
@@ -144,7 +145,7 @@ const buffer = (
     queue(item, atSec, midiSounds)
   }
 
-  while (item && section && currentIndex.startsAtMs + item.durationBeats < rangeMs.to) {
+  while (item && section && currentIndex.startsAtMs + item.duration < rangeMs.to) {
     if (currentIndex.item === section.items.length - 1) {
       currentIndex.item = 0
       currentIndex.section += 1
@@ -211,7 +212,7 @@ const PlayerState = create<PlayerStateAndMutators>()(
         return { cursorMs }
       } else {
         const range = nextQueueRange(playback)
-        const { sections, context } = SongState.getState()
+        const { sections, context } = SongState.getState().song
         const bufferChanges = state.midiSounds
           ? buffer(playback, range, sections, context, state.midiSounds)
           : { queuedToMs: range.to }

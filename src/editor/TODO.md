@@ -6,7 +6,7 @@
   // we need to make sure the right-side of 0 looks like the left-side of 1, for example
 
   // TODO: resizing: ripple edit mode
-  // when holding CTRL down and resizing, we'll be restricting the potential durationBeats that
+  // when holding CTRL down and resizing, we'll be restricting the potential duration that
   // we can explore, and also "fixing up" the neighbouring items so that only the chord in question
   // and its immediate neighbour to the left are affected. When dragging the last handle (of the
   // "--" item always present at the end of the section), we'll be unrestricted in how long we

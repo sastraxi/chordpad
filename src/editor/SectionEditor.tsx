@@ -3,7 +3,7 @@ import ChordInput from '../inputs/ChordInput'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import TimelineItem, { ItemView } from './TimelineItem'
 import { UseComboboxGetInputPropsOptions } from 'downshift'
-import { SectionItem, useDefaultSongContext, useSection, useSongPlaybackInfo } from '../state/song'
+import { SectionItem, useDefaultSongContext, useSection, useTimelineBounds } from '../state/song'
 import { bpmToMsec, range, remove, update } from '../util'
 import SongContextEditor from './SongContextEditor'
 
@@ -25,7 +25,7 @@ const SectionEditor = ({
   const defaultContext = useDefaultSongContext()
   const globalScale = useGlobalScale()
   const playback = usePlayback()
-  const { positionsMs } = useSongPlaybackInfo()
+  const { positionsMs } = useTimelineBounds()
   const { section, setItems, setTitle, ...contextMutators } = useSection(sectionIndex)
 
   const sectionStartsAtMs = positionsMs[sectionIndex]
@@ -49,7 +49,7 @@ const SectionEditor = ({
       ...section.items,
       {
         chord: newChord,
-        durationBeats: timeSignature.perMeasure,
+        duration: timeSignature.perMeasure,
       },
     ])
   }
@@ -62,8 +62,8 @@ const SectionEditor = ({
     const cuts: ItemView[] = []
     let linePosition = position % lineLength
     let last = 0
-    while (last < item.durationBeats) {
-      const next = last + Math.min(item.durationBeats - last, lineLength - linePosition)
+    while (last < item.duration) {
+      const next = last + Math.min(item.duration - last, lineLength - linePosition)
       cuts.push({ start: last, end: next })
       linePosition = 0
       last = next
@@ -125,14 +125,14 @@ const SectionEditor = ({
       if (index === 0) {
         positions.push(0)
       } else {
-        positions.push(section.items[index - 1].durationBeats + positions[index - 1])
+        positions.push(section.items[index - 1].duration + positions[index - 1])
       }
       return positions
     }, [])
   }, [section.items])
 
   const endPosition = section.items.length > 0
-    ? positions[positions.length - 1] + section.items[section.items.length - 1].durationBeats
+    ? positions[positions.length - 1] + section.items[section.items.length - 1].duration
     : 0
 
   const numLines = Math.ceil(endPosition / lineLength)
@@ -217,7 +217,7 @@ const SectionEditor = ({
           }
           {/* a "new item" that is saved as a new SectionItem when successfully edited */}
           <TimelineItem
-            item={{ durationBeats: timeSignature.perMeasure }}
+            item={{ duration: timeSignature.perMeasure }}
             position={endPosition}
             timeSignature={timeSignature}
             additionalBoxProps={{

@@ -4167,9 +4167,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"noteynotes@portal:/home/cameron/dev/noteynotes::locator=chordpad%40workspace%3A.":
+"noteynotes@portal:/home/cam/dev/noteynotes::locator=chordpad%40workspace%3A.":
   version: 0.0.0-use.local
-  resolution: "noteynotes@portal:/home/cameron/dev/noteynotes::locator=chordpad%40workspace%3A."
+  resolution: "noteynotes@portal:/home/cam/dev/noteynotes::locator=chordpad%40workspace%3A."
   dependencies:
     fast-json-stable-stringify: ^2.1.0
     tonal: ^5.0.0
