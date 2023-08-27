@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { TimeSignature } from '../../types'
-import { accum, sum, update } from '../../util'
+import { accum, remove, sum, update } from '../../util'
 import { SectionItem, SongContext, SongSection, Song, SongAndMetrics, SectionMetrics } from './types'
 import { buildMetrics } from './metrics'
 import { QUARTER_NOTE, bpmToMsec } from '../../util/conversions'
@@ -43,6 +43,7 @@ export type ContextMutators = {
 type SectionMutators = {
   setItems: (items: SectionItem[]) => void
   setTitle: (title: string) => void
+  delete: () => void
 }
 
 type SongStateAndMutators = SongAndMetrics & {
@@ -52,6 +53,8 @@ type SongStateAndMutators = SongAndMetrics & {
   setTitle: (author: string) => void
 
   addSection: () => void
+  deleteSection: (index: number) => void
+
   setSectionItems: (index: number, items: Array<SectionItem>) => void
   setSectionContext: (index: number, contextOverrides: Partial<SongContext>) => void
   setSectionTitle: (index: number, title: string) => void
@@ -112,6 +115,11 @@ export const SongState = create<SongStateAndMutators>()(
             rhythmOverrides: new Map(),
             items: [],
           }]
+        })),
+
+        deleteSection: (index: number) => setSongAndMetrics((song) => ({
+          // FIXME: performance?
+          sections: remove(song.sections, index),
         }))
       }
     },
@@ -177,6 +185,7 @@ export const useSection = (index: number): UseSection => {
   const setSectionItems = useSongState(state => state.setSectionItems)
   const setSectionContext = useSongState(state => state.setSectionContext)
   const setSectionTitle = useSongState(state => state.setSectionTitle)
+  const deleteSection = useSongState(state => state.deleteSection)
 
   const setContext = (context: Partial<SongContext>) => setSectionContext(index, context)
   const setOrClear = <T extends keyof SongContext>(key: T) => (value: SongContext[T] | null) => {
@@ -202,5 +211,6 @@ export const useSection = (index: number): UseSection => {
 
     setItems: (items: SectionItem[]) => setSectionItems(index, items),
     setTitle: (title: string) => setSectionTitle(index, title),
+    delete: () => deleteSection(index),
   }
 }

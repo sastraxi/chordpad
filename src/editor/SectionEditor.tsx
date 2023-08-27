@@ -1,4 +1,4 @@
-import { Box, Editable, EditableInput, EditablePreview, HStack, Kbd, Text, VStack } from '@chakra-ui/react'
+import { Box, Editable, EditableInput, EditablePreview, HStack, IconButton, Kbd, Text, VStack } from '@chakra-ui/react'
 import ChordInput from '../inputs/ChordInput'
 import { useCallback, useRef, useState } from 'react'
 import TimelineItem, { ItemView } from './TimelineItem'
@@ -13,8 +13,9 @@ import { useGlobalScale } from '../state/global-scale'
 import TimelineRow from './TimelineRow'
 import { usePlayback } from '../state/player'
 import { BaseTimelineItem, ItemMetrics, SectionItem } from '../state/song/types'
-import { QUARTER_NOTE, measuresToDuration, timeDurationMs } from '../util/conversions'
+import { measuresToDuration, timeDurationMs } from '../util/conversions'
 import { resolveContext } from '../state/song/util'
+import { DeleteIcon } from '@chakra-ui/icons'
 
 type PropTypes = {
   index: number
@@ -31,6 +32,7 @@ const SectionEditor = ({
     section,
     setItems,
     setTitle,
+    delete: deleteSection,
     ...contextMutators
   } = useSection(sectionIndex)
 
@@ -161,6 +163,15 @@ const SectionEditor = ({
           context={defaultContext}
           overrides={section.contextOverrides}
           mutators={contextMutators}
+        />
+        <IconButton
+          borderWidth={2}
+          size="sm"
+          variant="ghost"
+          aria-label="Delete this section"
+          title="Delete this section"
+          icon={<DeleteIcon />}
+          onClick={deleteSection}
         />
       </HStack>
       <Box position="relative">
