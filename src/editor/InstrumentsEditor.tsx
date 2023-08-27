@@ -3,7 +3,7 @@ import { Box, Button, ButtonGroup, Checkbox, HStack, IconButton, Select, Slider,
 import { useState } from "react"
 import TimelineRow from "./TimelineRow"
 import Pulse from "../images/Pulse"
-import { SIXTEENTH_NOTE_TRIPLET, timeDurationMs } from "../util/conversions"
+import { SIXTEENTH_NOTE_TRIPLET } from "../util/conversions"
 
 type StrumMode =
   | 'time'        // e.g. 15ms for a nice strum

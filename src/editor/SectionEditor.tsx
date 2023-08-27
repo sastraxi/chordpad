@@ -157,7 +157,6 @@ const SectionEditor = ({
         <VStack width={`${lineWidth}px`} position="absolute" alignItems="flex-start" left={0} top={0}>
           {range(numLines).map((i) => {
             const duration = i === numLines - 1 ? (endPosition - (lineDuration * (numLines - 1))) : lineDuration
-            console.log('qd', duration / QUARTER_NOTE)
             return (
               <TimelineRow
                 key={i}
@@ -182,7 +181,6 @@ const SectionEditor = ({
               const romanNumeral: string | undefined = isValid ? getRomanNumeral(context.key, item.chord!) : undefined
               return getCutViews(sectionMetrics.items[index]).map((view, cutIndex) => {
                 const isFirst = cutIndex === 0
-                console.log(`${index}.${cutIndex}`)
                 return (
                   <TimelineItem
                     item={sectionMetrics.items[index]}
