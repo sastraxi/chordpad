@@ -3,6 +3,7 @@ import { Box, Button, ButtonGroup, Checkbox, HStack, IconButton, Select, Slider,
 import { useState } from "react"
 import TimelineRow from "./TimelineRow"
 import Pulse from "../images/Pulse"
+import { SIXTEENTH_NOTE_TRIPLET, timeDurationMs } from "../util/conversions"
 
 type StrumMode =
   | 'time'        // e.g. 15ms for a nice strum
@@ -32,7 +33,7 @@ const PULSES = [
   0.6, 0, 0, 0, 0, 0, 0.2, 0, 0, 0, 0, 0,
   0.6, 0, 0, 0, 0, 0, 0.3, 0, 0.3, 0, 0.3, 0,
 ]
-const PULSE_RESOLUTION = 24
+const PULSE_RESOLUTION = SIXTEENTH_NOTE_TRIPLET
 
 const InstrumentsEditor = ({
   onClose
@@ -198,15 +199,20 @@ const InstrumentsEditor = ({
                     icon={<ChevronRightIcon />}
                   />
                   <TimelineRow
-                    length={pulses.length}
-                    lengthResolution={pulseResolution}
-                    subdivisions={4}
-                    startAt={0}
+                    measure={{
+                      pos: 0,
+                      posMs: 0,
+                      duration: pulses.length * PULSE_RESOLUTION,
+                      durationMs: 0,
+                    }}
                     lineHeight={LINE_HEIGHT}
-                    quarterWidth={QUARTER_WIDTH}
-                    timeSignature={{
-                      noteValue: 4,
-                      perMeasure: 4,
+                    context={{
+                      timeSignature: {
+                        noteValue: 4,
+                        perMeasure: 4,
+                      },
+                      bpm: 0,
+                      key: 'A',
                     }}
                     rulerOpacity={0.5}
                     rulerText={false}

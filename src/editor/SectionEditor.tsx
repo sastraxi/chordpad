@@ -1,10 +1,10 @@
 import { Box, Editable, EditableInput, EditablePreview, HStack, Kbd, Text, VStack } from '@chakra-ui/react'
 import ChordInput from '../inputs/ChordInput'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import TimelineItem, { ItemView } from './TimelineItem'
 import { UseComboboxGetInputPropsOptions } from 'downshift'
-import { SectionItem, useDefaultSongContext, useSection, useTimelineBounds } from '../state/song'
-import { bpmToMsec, range, remove, update } from '../util'
+import { useDefaultSongContext, useSection } from '../state/song'
+import { range, remove, update } from '../util'
 import SongContextEditor from './SongContextEditor'
 
 import { isValidChord } from 'noteynotes/theory/chords'
@@ -12,29 +12,32 @@ import { getRomanNumeral } from 'noteynotes/theory/triads'
 import { useGlobalScale } from '../state/global-scale'
 import TimelineRow from './TimelineRow'
 import { usePlayback } from '../state/player'
+import { ItemMetrics, SectionItem } from '../state/song/types'
+import { QUARTER_NOTE, measuresToDuration, timeDurationMs } from '../util/conversions'
+import { resolveContext } from '../state/song/util'
 
 type PropTypes = {
   index: number
-  startMeasure?: number
 }
 
 const SectionEditor = ({
   index: sectionIndex,
-  startMeasure = 0,
 }: PropTypes) => {
   const defaultContext = useDefaultSongContext()
   const globalScale = useGlobalScale()
   const playback = usePlayback()
-  const { positionsMs } = useTimelineBounds()
-  const { section, setItems, setTitle, ...contextMutators } = useSection(sectionIndex)
+  const {
+    metrics: sectionMetrics,
+    section,
+    setItems,
+    setTitle,
+    ...contextMutators
+  } = useSection(sectionIndex)
 
-  const sectionStartsAtMs = positionsMs[sectionIndex]
+  const context = resolveContext(defaultContext, section.contextOverrides)
 
-  const timeSignature = section.contextOverrides.timeSignature ?? defaultContext.timeSignature
-  const key = section.contextOverrides.key ?? defaultContext.key
-
-  const lineLength = globalScale.measuresPerLine * timeSignature.perMeasure
-  const lineWidth = lineLength * globalScale.quarterWidth
+  const lineDuration = measuresToDuration(globalScale.measuresPerLine, context.timeSignature)
+  const lineWidth = globalScale.baseWidth * lineDuration
 
   const updateChord = (index: number) =>
     (newChord: string | null) => setItems(update(section.items, index, { chord: newChord }))
@@ -49,30 +52,19 @@ const SectionEditor = ({
       ...section.items,
       {
         chord: newChord,
-        duration: timeSignature.perMeasure,
+        duration: context.timeSignature.perMeasure,
       },
     ])
   }
 
-  /**
-   * If this item needs to be split up to fit on multiple timeline rows, 
-   * this returns the "view windows" we need to do it.
-   */
-  const getCutViews = (item: SectionItem, position: number): ItemView[] => {
-    const cuts: ItemView[] = []
-    let linePosition = position % lineLength
-    let last = 0
-    while (last < item.duration) {
-      const next = last + Math.min(item.duration - last, lineLength - linePosition)
-      cuts.push({ start: last, end: next })
-      linePosition = 0
-      last = next
-    }
-    return cuts
-  }
-
   const chordsContainer = useRef<HTMLDivElement | null>(null)
 
+  /**
+   * Makes the chord inputs together feel more like a text editor
+   * by shifting focus to the input so many spaces to the left/right.
+   * @param chordInput where do we start from?
+   * @param delta direction + magnitude of movement
+   */
   const navigate = (chordInput: HTMLInputElement, delta: number) => {
     if (!chordsContainer.current) throw new Error("Chords container is not mounted!")
 
@@ -100,10 +92,8 @@ const SectionEditor = ({
         node = node.parentNode as HTMLDivElement
       }
     }
-
     throw new Error('Given child element is not in the chords container!')
   }
-
   const onKeyDown = useCallback<React.KeyboardEventHandler<HTMLInputElement>>((e) => {
     const target = e.target as HTMLInputElement
     if (e.key === 'ArrowLeft' && target.selectionStart === 0) {
@@ -113,29 +103,33 @@ const SectionEditor = ({
     }
   }, [])
 
-
   const [scratchTitle, setScratchTitle] = useState<string | undefined>(undefined)
-
   const inputProps: UseComboboxGetInputPropsOptions = {
     onKeyDown,
   }
 
-  const positions = useMemo(() => {
-    return section.items.reduce<Array<number>>((positions, _item, index) => {
-      if (index === 0) {
-        positions.push(0)
-      } else {
-        positions.push(section.items[index - 1].duration + positions[index - 1])
-      }
-      return positions
-    }, [])
-  }, [section.items])
+  const endPosition = sectionMetrics.items.length === 0 ? 0 :
+    sectionMetrics.items[sectionMetrics.items.length - 1].pos +
+    sectionMetrics.items[sectionMetrics.items.length - 1].duration
 
-  const endPosition = section.items.length > 0
-    ? positions[positions.length - 1] + section.items[section.items.length - 1].duration
-    : 0
+  const numLines = Math.ceil(endPosition / lineDuration)
 
-  const numLines = Math.ceil(endPosition / lineLength)
+  /**
+   * If this item needs to be split up to fit on multiple timeline rows, 
+   * this returns the "view windows" we need to do it.
+   */
+  const getCutViews = (metrics: ItemMetrics): ItemView[] => {
+    const cuts: ItemView[] = []
+    let linePosition = metrics.pos % lineDuration
+    let last = 0
+    while (last < metrics.duration) {
+      const next = last + Math.min(metrics.duration - last, lineDuration - linePosition)
+      cuts.push({ start: last, end: next })
+      linePosition = 0
+      last = next
+    }
+    return cuts
+  }
 
   return (
     <Box>
@@ -162,21 +156,19 @@ const SectionEditor = ({
       <Box position="relative">
         <VStack width={`${lineWidth}px`} position="absolute" alignItems="flex-start" left={0} top={0}>
           {range(numLines).map((i) => {
-            const bpm = section.contextOverrides.bpm ?? defaultContext.bpm
-            const length = i === numLines - 1 ? (endPosition - (lineLength * (numLines - 1))) : lineLength
+            const duration = i === numLines - 1 ? (endPosition - (lineDuration * (numLines - 1))) : lineDuration
+            console.log('qd', duration / QUARTER_NOTE)
             return (
               <TimelineRow
                 key={i}
-                length={length}
-                lengthResolution={4}
-                quarterWidth={globalScale.quarterWidth}
-                lineHeight={globalScale.lineHeight}
-                startAt={startMeasure + i * lineLength}
-                subdivisions={4}
-                timeSignature={timeSignature}
+                context={context}
                 playback={playback}
-                bpm={bpm}
-                startAtMs={sectionStartsAtMs + (i * lineLength * bpmToMsec(bpm))}
+                measure={{
+                  pos: sectionMetrics.pos + i * lineDuration,
+                  posMs: sectionMetrics.posMs + timeDurationMs(i * lineDuration, context.bpm, context.timeSignature),
+                  duration,
+                  durationMs: timeDurationMs(duration, context.bpm, context.timeSignature),
+                }}
               />
             )
           })}
@@ -187,17 +179,18 @@ const SectionEditor = ({
             /* all items that exist in state */
             section.items.map((item, index) => {
               const isValid = item.chord ? isValidChord(item.chord) : false
-              const romanNumeral: string | undefined = isValid ? getRomanNumeral(key, item.chord!) : undefined
-              return getCutViews(item, positions[index]).map((view, cutIndex) => {
+              const romanNumeral: string | undefined = isValid ? getRomanNumeral(context.key, item.chord!) : undefined
+              return getCutViews(sectionMetrics.items[index]).map((view, cutIndex) => {
                 const isFirst = cutIndex === 0
+                console.log(`${index}.${cutIndex}`)
                 return (
                   <TimelineItem
-                    key={`${index}.${cutIndex}`}
-                    item={item}
+                    item={sectionMetrics.items[index]}
+                    posWithinSection={sectionMetrics.items[index].pos - sectionMetrics.pos}
                     view={view}
-                    position={positions[index]}
+                    context={context}
                     updateItem={(updates) => setItems(update<SectionItem>(section.items, index, updates))}
-                    timeSignature={timeSignature}
+                    key={`${index}.${cutIndex}`}
                   >
                     <Kbd userSelect="none" opacity={item.chord ? 1 : 0} colorScheme="gray" fontSize="sm" pt={1}>
                       {romanNumeral}
@@ -217,9 +210,14 @@ const SectionEditor = ({
           }
           {/* a "new item" that is saved as a new SectionItem when successfully edited */}
           <TimelineItem
-            item={{ duration: timeSignature.perMeasure }}
-            position={endPosition}
-            timeSignature={timeSignature}
+            item={{
+              pos: sectionMetrics.pos + sectionMetrics.duration,
+              posMs: sectionMetrics.posMs + sectionMetrics.durationMs,
+              duration: measuresToDuration(1, context.timeSignature),
+              durationMs: timeDurationMs(measuresToDuration(1, context.timeSignature), context.bpm, context.timeSignature),
+            }}
+            posWithinSection={sectionMetrics.duration}
+            context={context}
             additionalBoxProps={{
               position: "absolute",
             }}

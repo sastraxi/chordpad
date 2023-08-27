@@ -2,21 +2,19 @@ import { Box, Button, Flex, HStack } from '@chakra-ui/react'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 
-import { useTimelineBounds, useSongSections } from './state/song'
+import { useSongSections } from './state/song'
 import SectionEditor from './editor/SectionEditor'
 import SongMetaEditor from './editor/SongMetaEditor'
 
 import './App.css'
 import PlaybackBar from './components/PlaybackBar'
 import { BOTTOM_BAR_HEIGHT } from './components/constants'
-import ToolWindows from './tool-windows/ToolWindows'
 import MIDISounds, { type MIDISoundPlayer } from 'midi-sounds-react'
 import { useEffect, useRef } from 'react'
 import { useSetPlayer } from './state/player'
 
 const App = () => {
   const { sections, addSection } = useSongSections()
-  const { positions } = useTimelineBounds()
   const midiSounds = useRef<MIDISoundPlayer>()
   const setPlayer = useSetPlayer()
 
@@ -42,7 +40,6 @@ const App = () => {
               <SectionEditor
                 key={index}
                 index={index}
-                startMeasure={positions[index]}
               />
             ))}
           </DndProvider>

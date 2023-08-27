@@ -25,3 +25,12 @@ export const durationToMeasures = (duration: NoteLength, timeSignature: TimeSign
 export const measuresToDuration = (measures: number, timeSignature: TimeSignature): NoteLength =>
   NOTE_DENOMINATOR * measures *
   (timeSignature.perMeasure / timeSignature.noteValue)
+
+export const getBeatDuration = (timeSignature: TimeSignature): NoteLength =>
+  NOTE_DENOMINATOR / timeSignature.noteValue
+
+export const timeDurationMs = (duration: NoteLength, bpm: number, timeSignature?: TimeSignature) =>
+  msecToBpm(bpm) * (duration / (timeSignature ? getBeatDuration(timeSignature) : QUARTER_NOTE))
+
+export const msecToBpm = (durationMs: number) => (1000 / durationMs) * 60
+export const bpmToMsec = (bpm: number) => (1000 / (bpm / 60))

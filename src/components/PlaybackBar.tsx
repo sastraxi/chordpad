@@ -4,8 +4,9 @@ import { Box, Button, HStack, IconButton, Modal, ModalBody, ModalCloseButton, Mo
 import { useRef } from "react"
 import InstrumentsEditor from "../editor/InstrumentsEditor"
 import { useIsPlaying, usePlayerState } from "../state/player"
-import { SongPlaybackSection, useTimelineBounds } from "../state/song"
 import { BOTTOM_BAR_HEIGHT } from "./constants"
+import { SongMetrics, SongSection } from "../state/song/types"
+import { useSongSections } from "../state/song"
 
 const SECTION_COLOURS: Array<string> = [
   "yellow",
@@ -15,17 +16,15 @@ const SECTION_COLOURS: Array<string> = [
 const MiniMap = ({
   width,
   height,
-  totalLengthMs,
-  positionsMs,
+  metrics,
   sections,
 }: {
   width: number
   height: number
-  totalLengthMs: number
-  positionsMs: Array<number>
-  sections: Array<SongPlaybackSection>
+  metrics: SongMetrics
+  sections: Array<SongSection>
 }) => {
-  const scaleFactor = width / totalLengthMs
+  const scaleFactor = width / metrics.durationMs
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -35,19 +34,19 @@ const MiniMap = ({
       style={{ userSelect: "none" }}
     >
       {
-        sections.map((section, i) => {
-          const x = positionsMs[i] * scaleFactor
+        metrics.sections.map(({ posMs, durationMs }, i) => {
+          const x = posMs * scaleFactor
           return (
             <g key={`section-${i}`}>
               <rect
                 x={x}
                 y="0"
-                width={section.totalLengthMs}
+                width={durationMs}
                 height={height}
                 fill={SECTION_COLOURS[i % SECTION_COLOURS.length]}
               />
               <text x={x + 2} y="12" fontSize="11px">
-                {section.name}
+                {sections[i].title ?? `Section ${i + 1}`}
               </text>
             </g>
           )
@@ -58,7 +57,7 @@ const MiniMap = ({
 }
 
 const PlaybackBar = () => {
-  const { sections, positionsMs, totalLengthMs } = useTimelineBounds()
+  const { metrics, sections } = useSongSections()
   const { play, pause, reset, cursorMs } = usePlayerState()
   const isPlaying = useIsPlaying()
 
@@ -97,7 +96,7 @@ const PlaybackBar = () => {
           focusThumbOnChange={false}
           aria-label='slider-ex-4'
           min={0}
-          max={totalLengthMs}
+          max={metrics.durationMs}
           value={cursorMs}
           step={1}
         >
@@ -112,8 +111,7 @@ const PlaybackBar = () => {
           {dimensions && <MiniMap
             width={dimensions.contentBox.width}
             height={dimensions.contentBox.height}
-            positionsMs={positionsMs}
-            totalLengthMs={totalLengthMs}
+            metrics={metrics}
             sections={sections}
           />}
         </Box>

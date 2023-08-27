@@ -1,11 +1,12 @@
 import { create } from "zustand"
 import { NoteLength } from "../../types"
 import { createJSONStorage, persist } from "zustand/middleware"
-import { bpmToMsec } from "../../util"
+import { bpmToMsec, timeDurationMs } from "../../util/conversions"
 import {
   CombinedItem, DurationUpdate, InsertionIndex,
   SectionMetrics, SongAndMetrics, SongMetrics, Song, ItemMetrics, SectionItem
 } from "./types"
+import { resolveContext } from "./util"
 
 /////////////////////////////////////////////////////////////////////
 
@@ -59,6 +60,8 @@ export const buildMetrics = (song: Song): SongMetrics => {
   }
 
   for (const section of song.sections) {
+    const context = resolveContext(song.context, section.contextOverrides)
+
     const lastSection = metrics.sections[metrics.sections.length - 1]
     const sectionMetric: SectionMetrics = {
       startIndex: (lastSection?.startIndex ?? 0) + (lastSection?.items.length ?? 0),
@@ -69,14 +72,13 @@ export const buildMetrics = (song: Song): SongMetrics => {
       durationMs: 0,
     }
 
-    const beatMsec = bpmToMsec(section.contextOverrides.bpm ?? song.context.bpm)
     for (const item of section.items) {
       const lastItem = sectionMetric.items[sectionMetric.items.length - 1]
       const itemMetric: ItemMetrics = {
         pos: (lastItem?.pos ?? 0) + (lastItem?.duration ?? 0),
         duration: item.duration,
-        posMs: (lastItem?.posMs ?? 0) + (lastItem?.duration ?? 0),
-        durationMs: beatMsec * item.duration,
+        posMs: (lastItem?.posMs ?? 0) + (lastItem?.durationMs ?? 0),
+        durationMs: timeDurationMs(item.duration, context.bpm, context.timeSignature),
       }
       sectionMetric.items.push(itemMetric)
       sectionMetric.duration += itemMetric.duration

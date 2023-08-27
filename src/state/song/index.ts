@@ -1,9 +1,10 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { TimeSignature } from '../../types'
-import { accum, bpmToMsec, sum, update } from '../../util'
-import { SectionItem, SongContext, SongSection, Song, SongAndMetrics } from './types'
+import { accum, sum, update } from '../../util'
+import { SectionItem, SongContext, SongSection, Song, SongAndMetrics, SectionMetrics } from './types'
 import { buildMetrics } from './metrics'
+import { QUARTER_NOTE, bpmToMsec } from '../../util/conversions'
 
 const DEFAULT_SONG: Song = {
   title: 'My song',
@@ -18,9 +19,9 @@ const DEFAULT_SONG: Song = {
       rhythmOverrides: new Map(),
       contextOverrides: {},
       items: [
-        { chord: 'C major', duration: 4 },
-        { chord: 'F major', duration: 4 },
-        { chord: 'E minor', duration: 4 }
+        { chord: 'C major', duration: 4 * QUARTER_NOTE },
+        { chord: 'F major', duration: 4 * QUARTER_NOTE },
+        { chord: 'E minor', duration: 4 * QUARTER_NOTE }
       ]
     }
   ]
@@ -62,6 +63,15 @@ export const SongState = create<SongStateAndMutators>()(
       const setSong = (updateFunc: (song: Song) => Partial<Song>) =>
         set(({ song }) => ({ song: { ...song, ...updateFunc(song) } }))
 
+      const setSongAndMetrics = (updateFunc: (song: Song) => Partial<Song>) =>
+        set((state) => {
+          const song = { ...state.song, ...updateFunc(state.song) }
+          return {
+            song,
+            metrics: buildMetrics(song),
+          }
+        })
+
       return {
         ...INITIAL_STATE,
 
@@ -70,8 +80,8 @@ export const SongState = create<SongStateAndMutators>()(
         setAuthor: (author: string) => setSong(() => ({ author })),
         setTitle: (title: string) => setSong(() => ({ title })),
         setDefaultContext: (updates: Partial<SongContext>) =>
-          // FIXME: needs to fix-up metrics
-          setSong((song) => ({
+          // FIXME: performance?
+          setSongAndMetrics((song) => ({
             context: {
               ...song.context,
               ...updates,
@@ -79,14 +89,14 @@ export const SongState = create<SongStateAndMutators>()(
           })),
 
         setSectionItems: (index: number, items: Array<SectionItem>) =>
-          // FIXME: needs to fix-up metrics
-          setSong((song) => ({
+          // FIXME: performance?
+          setSongAndMetrics((song) => ({
             sections: update(song.sections, index, { items }),
           })),
 
         setSectionContext: (index: number, contextOverrides: Partial<SongContext>) =>
-          // FIXME: needs to fix-up metrics
-          setSong((song) => ({
+          // FIXME: performance?
+          setSongAndMetrics((song) => ({
             sections: update(song.sections, index, { contextOverrides })
           })),
 
@@ -95,8 +105,8 @@ export const SongState = create<SongStateAndMutators>()(
             sections: update(song.sections, index, { title })
           })),
 
-        addSection: () => setSong((song) => ({
-          // FIXME: needs to fix-up metrics
+        addSection: () => setSongAndMetrics((song) => ({
+          // FIXME: performance?
           sections: [...song.sections, {
             contextOverrides: {},
             rhythmOverrides: new Map(),
@@ -148,15 +158,22 @@ export const useMutateDefaultSongContext = (): ContextMutators => useSongState(s
 //////////////////////////////////////////////////////////
 
 export const useSongSections = () => useSongState(state => ({
+  metrics: state.metrics,
   sections: state.song.sections,
   addSection: state.addSection,
 }))
 
-type UseSection = ContextMutators & SectionMutators & { section: SongSection }
+type UseSection =
+  ContextMutators &
+  SectionMutators & {
+    section: SongSection,
+    metrics: SectionMetrics
+  }
 
 export const useSection = (index: number): UseSection => {
   const defaultContext = useDefaultSongContext()
   const section = useSongState(state => state.song.sections[index])
+  const metrics = useSongState(state => state.metrics.sections[index])
   const setSectionItems = useSongState(state => state.setSectionItems)
   const setSectionContext = useSongState(state => state.setSectionContext)
   const setSectionTitle = useSongState(state => state.setSectionTitle)
@@ -177,6 +194,7 @@ export const useSection = (index: number): UseSection => {
 
   return {
     section,
+    metrics,
 
     setBpm: setOrClear('bpm'),
     setKey: setOrClear('key'),
@@ -184,45 +202,5 @@ export const useSection = (index: number): UseSection => {
 
     setItems: (items: SectionItem[]) => setSectionItems(index, items),
     setTitle: (title: string) => setSectionTitle(index, title),
-  }
-}
-
-export type SongPlaybackSection = {
-  name: string
-  /**
-   * In beats.
-   */
-  totalLength: number
-  totalLengthMs: number
-  subdivisionsMs: Array<number>
-}
-
-type TimelineBounds = {
-  sections: Array<SongPlaybackSection>
-  positions: Array<number>
-  positionsMs: Array<number>
-  totalLengthMs: number
-}
-
-export const useTimelineBounds = (): TimelineBounds => {
-  const defaultContext = useDefaultSongContext()
-  const sections = useSongState(state => state.song.sections)
-
-  const playbackSections = sections.map((section, index): SongPlaybackSection => {
-    const bpm = section.contextOverrides.bpm ?? defaultContext.bpm
-    const lengths = section.items.map((item) => item.duration)
-    return {
-      name: section.title ?? `Section ${index + 1}`,
-      totalLengthMs: sum(lengths) * bpmToMsec(bpm),
-      totalLength: sum(lengths),
-      subdivisionsMs: lengths,
-    }
-  })
-
-  return {
-    sections: playbackSections,
-    positions: accum(playbackSections.map(s => s.totalLength)),
-    positionsMs: accum(playbackSections.map(s => s.totalLengthMs)),
-    totalLengthMs: sum(playbackSections.map(s => s.totalLengthMs)),
   }
 }

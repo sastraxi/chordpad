@@ -1,10 +1,13 @@
 import { Box, BoxProps } from "@chakra-ui/react"
-import { TimeSignature } from "../types"
+import { NoteLength } from "../types"
 import { useCallback, useRef, useState } from "react"
 import { useGlobalScale } from "../state/global-scale"
-import { BaseTimelineItem } from "../state/song"
 
 import './TimelineItem.css'
+import { BaseTimelineItem, SongContext } from "../state/song/types"
+import { measuresToDuration } from "../util/conversions"
+
+const ROW_GAP_PX = 8
 
 type Coordinate = {
   x: number
@@ -15,35 +18,33 @@ type Coordinate = {
  * Render only part of this timeline item?
  */
 export type ItemView = {
-  start?: number
-  end?: number
+  start?: NoteLength
+  end?: NoteLength
 }
 
 type PropTypes = {
-  item: BaseTimelineItem
+  item: BaseTimelineItem,
+  /**
+   * The position of this item in the section, disregarding the view.
+   */
+  posWithinSection: NoteLength
+  view?: ItemView
+  context: SongContext
   updateItem?: (updates: Partial<BaseTimelineItem>) => void
-  timeSignature: TimeSignature
   children: React.ReactNode
   additionalBoxProps?: BoxProps
-
-  /**
-   * The position of this item in the section,
-   * disregarding the view.
-   */
-  position: number
-  view?: ItemView
 }
 
 const TimelineItem = ({
   item,
-  position,
+  posWithinSection,
   view = {},
-  timeSignature,
+  context,
   updateItem,
   children,
   additionalBoxProps = {},
 }: PropTypes) => {
-  const { quarterWidth, measuresPerLine, lineHeight } = useGlobalScale()
+  const { baseWidth, measuresPerLine, lineHeight, snapDuration } = useGlobalScale()
 
   const [dragAnchor, setDragAnchor] = useState<Coordinate | undefined>(undefined)
 
@@ -53,33 +54,35 @@ const TimelineItem = ({
   const hasStart = start === 0
   const hasEnd = end === item.duration
 
-  const width = quarterWidth * viewedDuration
-  const beatsPerMeasure = (timeSignature.noteValue / 4) * timeSignature.perMeasure
-  const beatsPerLine = beatsPerMeasure * measuresPerLine
+  const width = baseWidth * viewedDuration
+  const beatsPerLine = measuresToDuration(measuresPerLine, context.timeSignature)
 
-  const minDelta = 1 - item.duration
+  const minDelta = snapDuration - item.duration
+  const snapWidth = snapDuration * baseWidth
 
   const offsetToDelta = useCallback((offset: Coordinate): number => {
-    const dy = Math.floor(offset.y / lineHeight)
-    const dx = Math.floor(0.5 + offset.x / quarterWidth)
+    const dy = Math.floor(offset.y / (lineHeight + ROW_GAP_PX))
+    const dx = Math.floor(0.5 + offset.x / snapWidth) * snapDuration
     return Math.max(dy * beatsPerLine + dx, minDelta)
-  }, [lineHeight, quarterWidth, beatsPerLine, minDelta])
+  }, [lineHeight, baseWidth, beatsPerLine, minDelta])
 
-  const viewStartPosition = position + start
+  const viewStartPosition = posWithinSection + start
   const deltaToOffset = useCallback((delta: number, fromPosition: number): Coordinate => {
     let dx = delta + (fromPosition - viewStartPosition)  // from start of this view
     let dy = 0
     while (dx < 0) { dy -= 1; dx += beatsPerLine }
     while (dx > beatsPerLine) { dy += 1; dx -= beatsPerLine }
     return {
-      x: dx * quarterWidth - 0.5,
-      y: dy * lineHeight,
+      x: dx * baseWidth - 0.5,
+      y: dy * (lineHeight + ROW_GAP_PX),
     }
-  }, [lineHeight, quarterWidth, beatsPerLine, viewStartPosition])
+  }, [lineHeight, snapWidth, beatsPerLine, viewStartPosition])
+
+  // FIXME: preview handle is snapping to deltas of +/- snapDuration, rather than lengths
 
   // the preview handle is at the end of the element
   const [previewLengthDelta, setPreviewLengthDelta] = useState(0)
-  const previewHandleOffset = deltaToOffset(previewLengthDelta, position + item.duration)
+  const previewHandleOffset = deltaToOffset(previewLengthDelta, posWithinSection + item.duration)
 
   ////////////////////////////////////////////////////////
 

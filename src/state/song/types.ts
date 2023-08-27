@@ -25,12 +25,9 @@ export type SongContext = {
  */
 export type SongRhythm = Map<InstrumentName, Rhythm | null>
 
-export type BaseTimelineItem = {
-  duration: NoteLength,
-}
-
-export type SectionItem = BaseTimelineItem & {
-  chord: string | null,
+export type SectionItem = {
+  chord: string | null
+  duration: NoteLength
 }
 
 export type SongSection = {
@@ -56,6 +53,8 @@ export type Measure = {
   pos: NoteLength
   duration: NoteLength
 }
+
+export type BaseTimelineItem = Timing & Measure
 
 export type ItemMetrics = Timing & Measure
 export type SectionMetrics = Timing & Measure & {

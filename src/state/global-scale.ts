@@ -1,16 +1,20 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+import { NoteLength } from '../types'
+import { EIGHTH_NOTE, QUARTER_NOTE } from '../util/conversions'
 
 type GlobalScaleState = {
   quarterWidth: number
   measuresPerLine: number
   lineHeight: number
+  snapDuration: NoteLength
 }
 
 const DEFAULT_STATE: GlobalScaleState = {
   quarterWidth: 60,
   measuresPerLine: 4,
   lineHeight: 100,
+  snapDuration: EIGHTH_NOTE,
 }
 
 //////////////////////////////////////////////////////////
@@ -33,10 +37,12 @@ const useGlobalScaleInternal = create<GlobalScaleStateAndMutators>()(
 )
 
 export const useGlobalScale = () => {
-  const { quarterWidth, measuresPerLine, lineHeight } = useGlobalScaleInternal()
+  const { quarterWidth, measuresPerLine, lineHeight, snapDuration } = useGlobalScaleInternal()
   return {
+    baseWidth: quarterWidth / QUARTER_NOTE,
     quarterWidth,
     measuresPerLine,
     lineHeight,
+    snapDuration,
   }
 }

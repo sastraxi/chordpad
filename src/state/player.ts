@@ -2,11 +2,11 @@ import { create } from 'zustand'
 import { MIDISoundPlayer } from 'midi-sounds-react'
 import { SongState } from './song'
 import { SectionItem, SongContext, SongSection } from './song/types'
-import { bpmToMsec } from '../util'
 
 import { getFrettings, frettingToVexChord } from 'noteynotes/instrument/guitar'
 import { Midi } from 'tonal'
-import { MS_TO_SEC } from '../util/conversions'
+import { MS_TO_SEC, timeDurationMs } from '../util/conversions'
+import { resolveContext } from './song/util'
 
 /**
  * How often should we buffer music, and update the playback cursor in our state?
@@ -18,7 +18,7 @@ const PLAYBACK_TICK_INTERVAL_MS = 100
  * Always keep at least this much music filled up
  * in the playback buffer.
  */
-const QUEUE_AHEAD_MS = 1500
+const QUEUE_AHEAD_MS = 800
 
 let tickInterval: number | undefined = undefined
 
@@ -135,8 +135,8 @@ const buffer = (
 
   const getCurrentDuration = () => {
     if (!section || !item) throw new Error('Cannot get duration for an item that does not exist')
-    const bpm = section.contextOverrides.bpm ?? defaultContext.bpm
-    return bpmToMsec(bpm) * item.duration
+    const context = resolveContext(defaultContext, section.contextOverrides)
+    return timeDurationMs(item.duration, context.bpm, context.timeSignature)
   }
 
   if (queuedToMs === undefined) {

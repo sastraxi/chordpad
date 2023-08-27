@@ -3,7 +3,7 @@ import {
   SliderFilledTrack, SliderThumb, SliderTrack
 } from "@chakra-ui/react"
 import { useState } from "react"
-import { bpmToMsec, msecToBpm } from "../util"
+import { bpmToMsec, msecToBpm } from "../util/conversions"
 
 type PropTypes = {
   value: number

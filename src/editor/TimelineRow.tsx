@@ -1,31 +1,32 @@
 import { useMemo } from "react"
 import { Box } from "@chakra-ui/react"
 
-import { type TimeSignature } from "../types"
 import { range } from "../util"
 import { PlaybackState, calcCursorMs } from "../state/player"
-import { MIN_TO_MS } from "../util/conversions"
+import { EIGHTH_NOTE, QUARTER_NOTE, SIXTEENTH_NOTE, measuresToDuration, timeDurationMs } from "../util/conversions"
 
 import './TimelineRow.css'
+import { BaseTimelineItem, SongContext } from "../state/song/types"
+import { useGlobalScale } from "../state/global-scale"
 
 const SvgPlaybackCursor = ({
-  rowStartMs,
   playback,
-  rowLengthBeats,
-  bpm,
-  lineHeight
+  context,
+  measure,
+  rowLength,
+  lineHeight,
 }: {
   playback: PlaybackState
-  rowStartMs: number
-  rowLengthBeats: number
-  bpm: number
+  context: SongContext
+  measure: BaseTimelineItem
+  rowLength: number
   lineHeight: number
 }) => {
-  const rowLengthMs = (rowLengthBeats / bpm) * MIN_TO_MS
+  const rowLengthMs = timeDurationMs(rowLength, context.bpm, context.timeSignature)
   const style = useMemo(
     () => {
       const cursorMs = calcCursorMs(playback)
-      const delayMs = rowStartMs - cursorMs
+      const delayMs = measure.posMs - cursorMs
       return {
         "--timeline-playback-start": "0",
         "--timeline-playback-end": "100%",
@@ -34,7 +35,7 @@ const SvgPlaybackCursor = ({
         "--timeline-playback-delay": `${delayMs}ms`,
       } as React.CSSProperties
     },
-    [rowLengthMs, rowStartMs, playback.startedAtMs, playback.cursorStartMs])
+    [rowLengthMs, measure.posMs, playback.startedAtMs, playback.cursorStartMs])
 
   return (
     <g fill="red" style={style}>
@@ -50,42 +51,33 @@ const SvgPlaybackCursor = ({
   )
 }
 
+const TICK_GRID = SIXTEENTH_NOTE
+
 const TimelineRow = ({
-  startAt,
-  startAtMs,
-  length,
-  lengthResolution,
-  subdivisions,
-  children,
-  timeSignature,
-  lineHeight,
-  quarterWidth,
+  measure,
+  context,
   playback,
-  bpm,
+  lineHeight,
+  children,
   rulerOpacity = 1.0,
   rulerText = true,
 }: {
-  startAt: number,  // measures
-  length: number,
-  lengthResolution: number,  // e.g. quarter = 4, eighth = 8, ... 
-  subdivisions: number,
-  timeSignature: TimeSignature
-  lineHeight: number
-  quarterWidth: number
+  measure: BaseTimelineItem,
+  context?: SongContext,
+  playback?: PlaybackState
+  lineHeight?: number
+  children?: React.ReactNode
   rulerOpacity?: number
   rulerText?: boolean
-  startAtMs?: number,
-  playback?: PlaybackState
-  bpm?: number
-  children?: React.ReactNode
 }) => {
-  const rowLength = length / lengthResolution
-  const rowWidth = quarterWidth * 4 * rowLength
+  const { baseWidth, lineHeight: globalLineHeight } = useGlobalScale()
+  const height = lineHeight ?? globalLineHeight
+  const rowWidth = baseWidth * measure.duration
   return (
-    <Box position="relative" width={`${rowWidth}px`} height={`${lineHeight}px`}>
+    <Box position="relative" width={`${rowWidth}px`} height={`${height}px`}>
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        viewBox={`-1 0 ${rowWidth + 1} ${lineHeight}`}
+        viewBox={`-1 0 ${rowWidth + 1} ${height}`}
         style={{
           position: "absolute",
           top: 0,
@@ -93,46 +85,46 @@ const TimelineRow = ({
           userSelect: "none",
         }}
       >
-        {playback && bpm && startAtMs !== undefined && <SvgPlaybackCursor
+        {playback && context && <SvgPlaybackCursor
           playback={playback}
-          rowLengthBeats={rowLength * 4}
-          lineHeight={lineHeight}
-          bpm={bpm}
-          rowStartMs={startAtMs}
+          context={context}
+          measure={measure}
+          rowLength={measure.duration}
+          lineHeight={height}
         />}
         <g fill="#5f5f5f" opacity={rulerOpacity}>
           {
-            range(length * subdivisions).map((n) => {
-              const position = n / subdivisions
-              const globalPosition = startAt + position
-              const isStartOfBar = globalPosition % timeSignature.perMeasure === 0
-
+            range(measure.duration / TICK_GRID).map((n) => {
+              const position = n * TICK_GRID
+              const globalPosition = measure.pos + position
+              const measureDuration = context ? measuresToDuration(1, context.timeSignature) : undefined
+              const isStartOfBar = context ? globalPosition % measureDuration! === 0 : false
               if (isStartOfBar) {
                 // start of a bar
                 return (
                   <g key={`bar-${n}`}>
                     <path
-                      d={`M${position * quarterWidth} 100 l0 -100`}
+                      d={`M${position * baseWidth} 100 l0 -100`}
                       stroke="black"
                       strokeWidth="2"
                       strokeDasharray="2,2"
                       opacity="0.4"
                     />
-                    {rulerText &&
-                      <text x={position * quarterWidth + 12} y={lineHeight - 14} fontSize="11px">
-                        {globalPosition / timeSignature.perMeasure}
+                    {rulerText && context &&
+                      <text x={position * baseWidth + 12} y={height - 14} fontSize="11px">
+                        {globalPosition / measureDuration!}
                       </text>
                     }
                   </g>
                 )
 
-              } else if (position % 1 === 0) {
+              } else if (position % QUARTER_NOTE === 0) {
                 // big ticks
                 return (
                   <rect
                     key={`tick-${n}`}
-                    x={position * quarterWidth}
-                    y={lineHeight - 8}
+                    x={position * baseWidth}
+                    y={height - 8}
                     width="1.5"
                     height="8"
                     opacity="0.7"
@@ -144,8 +136,8 @@ const TimelineRow = ({
                 return (
                   <rect
                     key={`tick-${n}`}
-                    x={position * quarterWidth}
-                    y={lineHeight - 3}
+                    x={position * baseWidth}
+                    y={height - 3}
                     width="1.5"
                     height="3"
                     opacity="0.3"

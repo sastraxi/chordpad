@@ -18,9 +18,6 @@ export const update = <T>(array: Array<T>, index: number, updates: Partial<T>): 
   ...array.slice(index + 1),
 ])
 
-export const msecToBpm = (durationMs: number) => (1000 / durationMs) * 60
-export const bpmToMsec = (bpm: number) => (1000 / (bpm / 60))
-
 export const sum = <T extends number>(array: Array<T>) =>
   array.reduce((accum, current) => accum + current, 0)
 
