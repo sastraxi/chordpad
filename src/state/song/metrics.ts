@@ -133,6 +133,8 @@ export const updateDurations = (
       } : oldItem
     }
   }
+  const getSectionContext = () =>
+    resolveContext(state.song.context, state.song.sections[sectionIndex].contextOverrides)
 
   for (const update of updates) {
     while (update.index > state.metrics.sections[sectionIndex].startIndex + state.metrics.sections[sectionIndex].items.length) {
@@ -158,14 +160,14 @@ export const updateDurations = (
     itemIndex = thisIndex
 
     // (always) fix up this item, apply duration update, update posDelta + posMsDelta
-    const beatMsec = bpmToMsec(state.song.sections[sectionIndex].contextOverrides.bpm ?? song.context.bpm)
+    const context = getSectionContext()
     const oldItem = state.metrics.sections[sectionIndex].items[itemIndex]
     const newItem = hasDelta() ? {
       ...oldItem,
       pos: oldItem.pos + posDelta,
       posMs: oldItem.posMs + posMsDelta,
       duration: update.duration,
-      durationMs: beatMsec * update.duration,
+      durationMs: timeDurationMs(update.duration, context.bpm, context.timeSignature),
     } : oldItem
     metrics.sections[sectionIndex].items.push(newItem)
     posDelta += (newItem.duration - oldItem.duration)

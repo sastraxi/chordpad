@@ -1,10 +1,11 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { TimeSignature } from '../../types'
-import { accum, remove, sum, update } from '../../util'
-import { SectionItem, SongContext, SongSection, Song, SongAndMetrics, SectionMetrics } from './types'
+import { remove, update } from '../../util'
+import { SectionItem, SongContext, SongSection, Song, SongAndMetrics, SectionMetrics, Instrument } from './types'
 import { buildMetrics } from './metrics'
-import { QUARTER_NOTE, bpmToMsec } from '../../util/conversions'
+import { QUARTER_NOTE } from '../../util/conversions'
+import { InstrumentLibrary } from './instrument-library'
 
 const DEFAULT_SONG: Song = {
   title: 'My song',
@@ -13,11 +14,16 @@ const DEFAULT_SONG: Song = {
     key: 'C major',
     timeSignature: { perMeasure: 4, noteValue: 4 },
   },
+  instruments: [
+    InstrumentLibrary['Kick'],
+    InstrumentLibrary['Snare'],
+    InstrumentLibrary['Electric Bass'],
+  ],
   sections: [
     {
       title: 'Intro',
-      rhythmOverrides: new Map(),
       contextOverrides: {},
+      instrumentOverrides: {},
       items: [
         { chord: 'C major', duration: 4 * QUARTER_NOTE },
         { chord: 'F major', duration: 4 * QUARTER_NOTE },
@@ -58,6 +64,9 @@ type SongStateAndMutators = SongAndMetrics & {
   setSectionItems: (index: number, items: Array<SectionItem>) => void
   setSectionContext: (index: number, contextOverrides: Partial<SongContext>) => void
   setSectionTitle: (index: number, title: string) => void
+
+  addInstrument: (instrument: Instrument) => void
+  updateInstrument: (index: number, updates: Partial<Instrument>) => void
 }
 
 export const SongState = create<SongStateAndMutators>()(
@@ -112,7 +121,7 @@ export const SongState = create<SongStateAndMutators>()(
           // FIXME: performance?
           sections: [...song.sections, {
             contextOverrides: {},
-            rhythmOverrides: new Map(),
+            instrumentOverrides: {},
             items: [],
           }]
         })),
@@ -120,7 +129,15 @@ export const SongState = create<SongStateAndMutators>()(
         deleteSection: (index: number) => setSongAndMetrics((song) => ({
           // FIXME: performance?
           sections: remove(song.sections, index),
-        }))
+        })),
+
+        addInstrument: (instrument) => setSong((song) => ({
+          instruments: [...song.instruments, instrument],
+        })),
+
+        updateInstrument: (index, updates) => setSong((song) => ({
+          instruments: update(song.instruments, index, updates),
+        })),
       }
     },
     {
@@ -162,6 +179,14 @@ export const useMutateDefaultSongContext = (): ContextMutators => useSongState(s
   }
 })
 
+//////////////////////////////////////////////////////////
+
+export const useSongInstruments = () =>
+  useSongState(state => ({
+    instruments: state.song.instruments,
+    addInstrument: state.addInstrument,
+    updateInstrument: state.updateInstrument,
+  }))
 
 //////////////////////////////////////////////////////////
 

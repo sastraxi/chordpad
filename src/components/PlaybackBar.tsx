@@ -121,7 +121,6 @@ const PlaybackBar = () => {
         <ModalOverlay />
         <ModalContent>
           <ModalHeader pt={6} mb={-4}>Instruments</ModalHeader>
-          <ModalCloseButton />
           <ModalBody overflow="hidden" mt={-8}>
             <InstrumentsEditor onClose={onClose} />
           </ModalBody>
