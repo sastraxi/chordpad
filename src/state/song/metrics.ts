@@ -91,11 +91,109 @@ export const buildMetrics = (song: Song): SongMetrics => {
   return metrics
 }
 
+// TODO: pull out core algorithm into its own function and have parameters that
+// allow for all types of non-BPM edits to take place.
+// BPM updates should have their own algorithm (simpler)
 export const updateDurations = (
   state: SongAndMetrics,
   updates: DurationUpdate[],
 ): SongAndMetrics => {
-  throw new Error(`Not implemented`)
+  // make sure updates are in-order
+  updates.sort((a, b) => {
+    if (a.index === b.index) throw new Error('Passed two duration updates for the same item!')
+    return a.index - b.index
+  })
+
+  const song: Song = { ...state.song, sections: [] }
+  const metrics: SongMetrics = { ...state.metrics, sections: [] }
+
+  let sectionIndex = 0, itemIndex = 0
+  let posDelta = 0, posMsDelta = 0
+
+  const hasDelta = () => posDelta !== 0 && posMsDelta !== 0
+  const cloneSection = (upperBoundExclusive?: number) => {
+    const oldSection = state.metrics.sections[sectionIndex]
+    if (itemIndex === 0) {
+      metrics.sections[sectionIndex] = {
+        ...oldSection,
+        pos: oldSection.pos + posDelta,
+        posMs: oldSection.posMs + posMsDelta,
+        items: []
+      }
+    }
+    const section = metrics.sections[sectionIndex]
+    for (; itemIndex < (upperBoundExclusive ?? oldSection.items.length); itemIndex += 1) {
+      const oldItem = oldSection.items[itemIndex]
+      section.items[itemIndex] = hasDelta() ? {
+        ...oldItem,
+        pos: oldItem.pos + posDelta,
+        posMs: oldItem.posMs + posMsDelta,
+      } : oldItem
+    }
+  }
+
+  for (const update of updates) {
+    while (update.index > state.metrics.sections[sectionIndex].startIndex + state.metrics.sections[sectionIndex].items.length) {
+
+      if (!hasDelta() && itemIndex === 0) {
+        // early-out; no changes to make and we need to skip an entire section
+        metrics.sections[sectionIndex] = state.metrics.sections[sectionIndex]
+      } else {
+        // advance to next section, might have to fix-up metrics as we go
+        cloneSection()
+      }
+
+      sectionIndex += 1
+      itemIndex = 0
+    }
+
+    // sought item is now in the current section as denoted by sectionIndex
+    // fix up all items up to this one
+    const thisIndex = update.index - state.metrics.sections[sectionIndex].startIndex
+
+    // advance to our item, might have to fix-up metrics as we go
+    cloneSection(thisIndex)
+    itemIndex = thisIndex
+
+    // (always) fix up this item, apply duration update, update posDelta + posMsDelta
+    const beatMsec = bpmToMsec(state.song.sections[sectionIndex].contextOverrides.bpm ?? song.context.bpm)
+    const oldItem = state.metrics.sections[sectionIndex].items[itemIndex]
+    const newItem = hasDelta() ? {
+      ...oldItem,
+      pos: oldItem.pos + posDelta,
+      posMs: oldItem.posMs + posMsDelta,
+      duration: update.duration,
+      durationMs: beatMsec * update.duration,
+    } : oldItem
+    metrics.sections[sectionIndex].items.push(newItem)
+    posDelta += (newItem.duration - oldItem.duration)
+    posMsDelta += (newItem.durationMs - oldItem.durationMs)
+
+    // advance to next item
+    if (itemIndex === state.metrics.sections[sectionIndex].items.length - 1) {
+      sectionIndex += 1
+      itemIndex = 0
+    } else {
+      itemIndex += 1
+    }
+  }
+
+  // fix up all of the items after our updates are complete
+  while (sectionIndex < state.metrics.sections.length) {
+
+    if (!hasDelta() && itemIndex === 0) {
+      // early-out; no changes to make and we need to skip an entire section
+      metrics.sections[sectionIndex] = state.metrics.sections[sectionIndex]
+    } else {
+      // advance to next section, might have to fix-up metrics as we go
+      cloneSection()
+    }
+
+    sectionIndex += 1
+    itemIndex = 0
+  }
+
+  return { song, metrics }
 }
 
 export const moveItems = (
