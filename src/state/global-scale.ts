@@ -11,7 +11,7 @@ type GlobalScaleState = {
 }
 
 const DEFAULT_STATE: GlobalScaleState = {
-  quarterWidth: 60,
+  quarterWidth: 40,
   measuresPerLine: 4,
   lineHeight: 100,
   snapDuration: EIGHTH_NOTE,

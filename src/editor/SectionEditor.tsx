@@ -12,7 +12,7 @@ import { getRomanNumeral } from 'noteynotes/theory/triads'
 import { useGlobalScale } from '../state/global-scale'
 import TimelineRow from './TimelineRow'
 import { usePlayback } from '../state/player'
-import { ItemMetrics, SectionItem } from '../state/song/types'
+import { BaseTimelineItem, ItemMetrics, SectionItem } from '../state/song/types'
 import { QUARTER_NOTE, measuresToDuration, timeDurationMs } from '../util/conversions'
 import { resolveContext } from '../state/song/util'
 
@@ -45,6 +45,16 @@ const SectionEditor = ({
   const removeChord = (index: number) =>
     () => setItems(remove(section.items, index))
 
+  /**
+   * The initial metrics of the new item at the end of the section.
+   */
+  const scratchItem: BaseTimelineItem = {
+    pos: sectionMetrics.pos + sectionMetrics.duration,
+    posMs: sectionMetrics.posMs + sectionMetrics.durationMs,
+    duration: measuresToDuration(1, context.timeSignature),
+    durationMs: timeDurationMs(measuresToDuration(1, context.timeSignature), context.bpm, context.timeSignature),
+  }
+
   const addChord = (newChord: string | null) => {
     if (!newChord) return
     if (!isValidChord(newChord)) return
@@ -52,7 +62,7 @@ const SectionEditor = ({
       ...section.items,
       {
         chord: newChord,
-        duration: context.timeSignature.perMeasure,
+        duration: scratchItem.duration,
       },
     ])
   }
@@ -208,12 +218,7 @@ const SectionEditor = ({
           }
           {/* a "new item" that is saved as a new SectionItem when successfully edited */}
           <TimelineItem
-            item={{
-              pos: sectionMetrics.pos + sectionMetrics.duration,
-              posMs: sectionMetrics.posMs + sectionMetrics.durationMs,
-              duration: measuresToDuration(1, context.timeSignature),
-              durationMs: timeDurationMs(measuresToDuration(1, context.timeSignature), context.bpm, context.timeSignature),
-            }}
+            item={scratchItem}
             posWithinSection={sectionMetrics.duration}
             context={context}
             additionalBoxProps={{
